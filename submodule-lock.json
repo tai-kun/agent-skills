@@ -1,0 +1,10 @@
+{
+  "modules": {
+    "vitest": {
+      "repository": "https://github.com/vitest-dev/vitest",
+      "tag_semver": "^4.0.0",
+      "version": "v4.1.11",
+      "commit": "9bd8d464e6328c567c2dbcd8fdd977d57a9425c2"
+    }
+  }
+}

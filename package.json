@@ -1,0 +1,22 @@
+{
+  "name": "agent-skills",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "author": "tai-kun",
+  "type": "module",
+  "scripts": {
+    "submodules": "node ./scripts/setup-submodules.ts"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.5",
+    "@tsconfig/strictest": "^2.0.8",
+    "@types/node": "^24.13.5",
+    "@types/semver": "^7.8.0",
+    "npm-check-updates": "^23.1.0",
+    "semver": "^7.8.5",
+    "skills": "^1.7.0",
+    "typescript": "^7.0.2",
+    "valibot": "^1.5.0"
+  }
+}

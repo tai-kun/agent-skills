@@ -1,0 +1,12 @@
+minimumReleaseAge: 10080 # 7 日
+minimumReleaseAgeExclude: []
+blockExoticSubdeps: true
+trustPolicy: no-downgrade
+trustPolicyExclude: []
+strictDepBuilds: true
+onlyBuiltDependencies: []
+allowBuilds: {}
+update:
+  ignoreDeps:
+    - "*" # パッケージの更新は ncu に任せる
+# packages: []

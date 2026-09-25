@@ -1,0 +1,9 @@
+{
+  "directory": "./submodules",
+  "modules": {
+    "vitest": {
+      "repository": "https://github.com/vitest-dev/vitest",
+      "tag_semver": "^4.0.0"
+    }
+  }
+}

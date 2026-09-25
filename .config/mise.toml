@@ -1,0 +1,18 @@
+[settings]
+minimum_release_age = "7d"
+
+[tools]
+node = "24"
+pnpm = "11"
+
+[tasks."submodules:sync"]
+run = "node scripts/sync-submodules.ts"
+
+[tasks.update]
+run = [
+  "pnpm dlx npm-check-updates --target minor -u --cooldown 7",
+  "pnpm update --include-github-actions",
+  "pnpm install",
+  "pnpm audit",
+  "pnpm dlx skills update"
+]

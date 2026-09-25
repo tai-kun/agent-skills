@@ -1,0 +1,3 @@
+[submodule "submodules/vitest"]
+	path = submodules/vitest
+	url = https://github.com/vitest-dev/vitest
