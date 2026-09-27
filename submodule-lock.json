@@ -1,8 +1,16 @@
 {
   "modules": {
+    "blume": {
+      "repository": "https://github.com/haydenbleasel/blume",
+      "tag_semver": "^2.0.0",
+      "regex": "^blume@([0-9].+)",
+      "version": "blume@2.0.3",
+      "commit": "f61fc184c63ab49c7fbaa9d987d55d1fc74496b6"
+    },
     "vitest": {
       "repository": "https://github.com/vitest-dev/vitest",
       "tag_semver": "^4.0.0",
+      "regex": "^v([0-9].+)",
       "version": "v4.1.11",
       "commit": "9bd8d464e6328c567c2dbcd8fdd977d57a9425c2"
     }

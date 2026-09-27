@@ -1,6 +1,11 @@
 {
   "directory": "./submodules",
   "modules": {
+    "blume": {
+      "repository": "https://github.com/haydenbleasel/blume",
+      "tag_semver": "^2.0.0",
+      "regex": "^blume@([0-9].+)"
+    },
     "vitest": {
       "repository": "https://github.com/vitest-dev/vitest",
       "tag_semver": "^4.0.0"

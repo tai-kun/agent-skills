@@ -1,0 +1,719 @@
+---
+name: blume-components
+description: 任意の MDX ページで使える Blume の組み込みコンポーネントを説明します。カード、ステップ、タブ、アコーディオン、バッジ、コードグループ、フレーム、ツリー、型テーブル、ライブプレビュー、差分を扱います。
+---
+
+# コンポーネント
+
+Blume には、アクセシブルでテーマ設定可能なコンポーネントセットが同梱されており、**インポート不要**で任意の `.mdx` ページで利用できます。以下ではそれぞれをライブプレビューとソースとともに紹介します。コンポーネントはバニラ実装で React を使いません。React が有効になるのは、プロジェクトで React を使っている場合 — プロジェクト内の `.tsx` や `.jsx` ファイル、React の [アイランド](https://useblume.dev/ja/docs/content/islands)、[`<Component>`](#component) のサンプル、[コンポーネントのオーバーライド](https://useblume.dev/ja/docs/configuration/customization) のいずれかがある場合 — か、[アシスタント](https://useblume.dev/ja/docs/configuration/assistant) が有効になっている場合のみです。
+
+## Card と CardGroup [#card-and-cardgroup]
+
+カードは、アイコン、タイトル、短い説明文とともにリンク先を示します。`CardGroup` でまとめるとレスポンシブなグリッドになります。ランディングページ、セクションのインデックス、「次のステップ」など、読者を先へ導きたい場所で活用してください。
+
+**[クイックスタート](https://useblume.dev/ja/docs/quickstart)**
+
+Blume をインストールして最初のページを公開しましょう。
+
+**[コンポーネント](components.md)**
+
+コンポーネントライブラリを見る。
+
+```astro lineNumbers
+<CardGroup cols={2}>
+  <Card title="Quickstart" href="/docs/quickstart" icon="rocket">
+    Install Blume and ship your first page.
+  </Card>
+  <Card title="Components" href="/docs/content/components" icon="folder">
+    Browse the component library.
+  </Card>
+</CardGroup>
+```
+
+`Card` は `title`、任意の `href`（省略するとクリックできないカードになります）、そして Blume 組み込みのアイコンセットから選ぶ `icon` を受け取ります。`CardGroup` は `cols`（デフォルトは `2`）を受け取ります。
+
+カードはさらに次のプロパティも受け取ります。`img` はカード上部に表示される画像です（`horizontal` を指定すると、`sm` ブレークポイント以上ではテキストの横に並びます）。`cta` はテキストの下にアクセントカラーで表示される行動喚起（CTA）の行です。`arrow` はタイトルと CTA の後ろに矢印を表示します（デフォルトでは外部リンクの場合のみ表示されます）。`type` はコールアウトと同じようにカードに色を付け、対応するアイコンを選びます（`note`、`info`、`tip`、`check`、`warning`、`danger` のいずれか）。`color` はアイコンの色で、任意の CSS カラーを指定できます。
+
+## Steps
+
+順序のある手順（インストール、セットアップの流れ、順番が重要なチュートリアルなど）のための、番号付きの縦方向シーケンスです。各 `Step` は `title` と任意の `icon` を受け取ります。`icon` は番号の代わりにマーカー内に表示されます。`Steps` の `titleSize` は、ステップのタイトルを本文テキスト（デフォルトの `p`）、または `h4`、`h3`、`h2` の見出しと同じサイズにします。
+
+1. **Blume をインストール**
+
+    パッケージをプロジェクトに追加します。
+
+2. **ページを書く**
+
+    コンテンツフォルダに `.mdx` ファイルを追加します。
+
+3. **公開する**
+
+    `blume build` を実行して `dist/` をデプロイします。
+
+```astro lineNumbers
+<Steps>
+  <Step title="Install Blume">Add the package to your project.</Step>
+  <Step title="Write a page">
+    Drop an `.mdx` file into your content folder.
+  </Step>
+  <Step title="Ship it">Run `blume build` and deploy `dist/`.</Step>
+</Steps>
+```
+
+## Tabs
+
+同等の内容 — 言語ごとのバリエーション、OS 別のコマンド、代替となるアプローチなど — をその場で切り替えられます。すべてをページ上に積み上げる必要がありません。各 `Tab` は `title` を受け取ります。
+
+**macOS**
+
+Homebrew を使ってツールチェーンをインストールします。
+
+**Windows**
+
+winget を使ってツールチェーンをインストールします。
+
+```astro lineNumbers
+<Tabs>
+  <Tab title="macOS">Use Homebrew to install the toolchain.</Tab>
+  <Tab title="Windows">Use winget to install the toolchain.</Tab>
+</Tabs>
+```
+
+`inline` を追加すると、枠線付きのボックスではなく、ボーダーレスで描画されます — 全幅の罫線上にタブストリップが並び、コンテンツはその下に本文として流れます。`param` を追加すると、アクティブなタブがハッシュではなく URL のクエリパラメータに同期され、選択状態を共有できるようになります。`?install=windows` で終わるリンクを開くと Windows タブが表示されます。各グループはそれぞれ独自の `param` に同期するため、1 ページ内に独立してディープリンク可能なグループを複数配置できます。
+
+同じタイトルのタブを持つグループは連動して切り替わります — 1 つのグループで「macOS」を選ぶと、macOS タブを持つすべてのグループがそれに追従します。`syncKey` を追加すると、その連動の範囲を限定できます。同じキーを共有するグループだけが連動して切り替わるため、たまたまタブのタイトルが一致しただけの無関係なグループは独立したままになります。あるいは `sync={false}` を指定すると、そのグループを連動の対象から完全に外せます。
+
+アクティブなタブは URL のハッシュに書き込まれるため、リンクを開くとそのタブが表示されます。URL を変更したくない場合は `hash={false}` を渡します。`defaultTabIndex` は、リンクや連動による選択でタブが決まらない場合に最初に開くタブを指定します（0 始まり、デフォルトは `0`）。`dropdown` はタブストリップをセレクトメニューに置き換え（枠線付きのレイアウトでのみ有効）、`borderBottom={false}` はストリップ下の罫線を取り除きます。また、各 `Tab` はタイトルの前に表示される `icon` を受け取ります。
+
+**macOS**
+
+Homebrew を使ってツールチェーンをインストールします。
+
+**Windows**
+
+winget を使ってツールチェーンをインストールします。
+
+```astro lineNumbers
+<Tabs inline param="install">
+  <Tab title="macOS">Use Homebrew to install the toolchain.</Tab>
+  <Tab title="Windows">Use winget to install the toolchain.</Tab>
+</Tabs>
+```
+
+## Badge
+
+ステータスやメタデータを示す小さなインラインラベルです — バージョンタグ、「new」や「beta」のマーカー、安定性レベルなど。`variant` で意味に合わせて色を調整します。
+
+### デフォルト [#default]
+
+特に強調のない中立的なメタデータ。
+
+安定版
+
+```astro
+<Badge>Stable</Badge>
+```
+
+### アクセント [#accent]
+
+テーマのアクセントカラーで注意を引きます — 「new」や注目マーカーに適しています。
+
+新機能
+
+```astro
+<Badge variant="accent">New</Badge>
+```
+
+### 成功 [#success]
+
+肯定的、または合格を示す状態。
+
+合格
+
+```astro
+<Badge variant="success">Passing</Badge>
+```
+
+### 警告 [#warning]
+
+実験的機能など、注意して使うべきもの。
+
+ベータ
+
+```astro
+<Badge variant="warning">Beta</Badge>
+```
+
+### 危険 [#danger]
+
+非推奨など、否定的または破壊的な状態。
+
+非推奨
+
+```astro
+<Badge variant="danger">Deprecated</Badge>
+```
+
+### 色、形、サイズ [#color-shape-and-size]
+
+`variant` のほかに、バッジは `color` を受け取ります — 名前付きの色相（`blue`、`green`、`orange`、`purple`、`red`、`teal`、`violet`、`yellow`）、ニュートラルカラー（`gray`、`surface`、`white`、`surface-destructive`、`white-destructive`）、または 16 進数値を指定できます。さらに、`shape`（デフォルトの `rounded` または `pill`）、`size`（`xs`、`sm`、デフォルトの `md`、`lg`）、塗りつぶしの代わりにアウトラインで描画する `stroke`、ラベルの前にアイコンを表示する `icon`、ホバー時のテキストを指定する `tooltip`、表示を薄くする `disabled` も受け取ります。
+
+アイコン付きの、アウトラインの紫色のピル: プレビュー
+
+```astro
+<Badge color="purple" icon="sparkles" shape="pill" stroke>Preview</Badge>
+```
+
+## Icon
+
+名前を指定してアイコンを描画します — 同じ `icon` プロパティが、カード、ステップ、タブ、サイドバーの項目でも使われます。名前は [Lucide](https://lucide.dev/icons) 由来で、小文字のケバブケースです（`rocket`、`gauge`、`book-open`）。
+
+
+
+```astro
+<Icon icon="rocket" size={20} />
+```
+
+Blume は Lucide 専用です — 名前だけを指定すると Lucide から解決され、他のアイコン入力との対称性のために `lucide:` を前置することもできます（`lucide:rocket`）。`size` はピクセルサイズ（デフォルトは `16`）を設定し、`color` は色を付けます（任意の CSS カラー。デフォルトは `currentColor`）。名前の代わりに生の `<svg>` 文字列、画像 URL、ローカル画像パスを渡せば独自のアートを描画でき、`label` を追加すると支援技術に公開されます。`label` がない場合、アイコンは装飾扱いになります。
+
+アイコンはビルド時に解決され、JavaScript を伴わない SVG としてインライン展開されます。実行時に取得されるものはありません。
+
+## ファイルツリー [#file-tree]
+
+プロジェクトやフォルダの構成を図示します。通常の Markdown リストをラップすると、Blume がツリーとしてスタイリングします — セットアップや設定のガイドで構造を説明するのに便利です。
+
+- docs/
+  - index.mdx
+  - guides/
+    - configuration.mdx
+- blume.config.ts
+
+```astro lineNumbers
+<FileTree>
+
+- docs/
+  - index.mdx
+  - guides/
+    - configuration.mdx
+- blume.config.ts
+
+</FileTree>
+```
+
+## Accordion
+
+関連する折りたたみ要素を、区切り線の入った 1 つの枠線付きコンテナにまとめます — FAQ、任意の手順、長い例などに。各子要素は `AccordionItem` です（`title`、任意の `icon`、`description`、`defaultOpen`）。単独の開閉要素には [Expandable](#expandable) を使ってください。
+
+**MDX に対応していますか？**
+
+はい — すべてのページを `.md` または `.mdx` にできます。
+
+**テーマはカスタマイズできますか？**
+
+はい。Tailwind v4 のトークンと独自の `theme.css` を通じて可能です。
+
+```astro lineNumbers
+<Accordion>
+  <AccordionItem title="Does it support MDX?">
+    Yes — every page can be `.md` or `.mdx`.
+  </AccordionItem>
+  <AccordionItem title="Is the theme customizable?">
+    Yes, via Tailwind v4 tokens and your own `theme.css`.
+  </AccordionItem>
+</Accordion>
+```
+
+## Expandable
+
+入れ子の詳細（フィールドのサブプロパティの展開や補足の余談など）のための軽量なインライン開閉要素です。`title` がトグルのラベルになります（デフォルトは「Show more」）。`defaultOpen` を指定すると展開された状態で始まります。
+
+**詳細オプションを表示**
+
+これらの設定は任意で、変更が必要になることはほとんどありません。
+
+```astro
+<Expandable title="Show advanced options">
+  These settings are optional and rarely need changing.
+</Expandable>
+```
+
+## Columns
+
+カードやブロックを、モバイルで折り返される等幅カラムのレスポンシブグリッドに配置します。`Columns` は `cols` を受け取り、各セルを `Column` でラップします。
+
+**高速**
+
+Astro と Vite の上に構築されています。
+
+**テーマ設定可能**
+
+Tailwind v4 のデザイントークン。
+
+```astro lineNumbers
+<Columns cols={2}>
+  <Column>
+    <Card title="Fast" icon="rocket">
+      Built on Astro and Vite.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="Themeable" icon="sun">
+      Tailwind v4 design tokens.
+    </Card>
+  </Column>
+</Columns>
+```
+
+## CodeGroup
+
+複数のコードブロックを 1 つのタブ切り替え式にまとめます — 言語ごと、ファイルごとに 1 タブ。タブのラベルは各ブロックのタイトル（言語の後に続くテキスト）になり、グループのコピーボタンはタブバーに配置され、表示中のブロックをコピーします。`dropdown` を追加すると、タブバーの代わりにメニューで切り替えます。
+
+```ts TypeScript
+export const greet = (name: string) => `Hello, ${name}`;
+```
+
+```python Python
+def greet(name: str) -> str:
+    return f"Hello, {name}"
+```
+
+```rust Rust
+fn greet(name: &str) -> String {
+    format!("Hello, {name}")
+}
+```
+
+````astro
+<CodeGroup>
+
+```ts TypeScript
+export const greet = (name: string) => `Hello, ${name}`;
+```
+
+```python Python
+def greet(name: str) -> str:
+    return f"Hello, {name}"
+```
+
+```rust Rust
+fn greet(name: &str) -> String {
+    format!("Hello, {name}")
+}
+```
+
+</CodeGroup>
+````
+
+## Frame
+
+画像や任意のビジュアルを、中央揃えの枠線付きフレームで囲みます。任意の `caption`（Markdown として描画されます）と `hint` を指定できます。
+
+フレームはビジュアルを中央揃えし、キャプションを付けます。
+
+<svg
+  width="160"
+  height="72"
+  viewBox="0 0 160 72"
+  role="img"
+  aria-label="サンプルフレーム"
+>
+  <rect width="160" height="72" rx="8" fill="#3b82f6" />
+</svg>
+
+**フレーム付き**のイラスト。
+
+```astro lineNumbers
+<Frame
+  caption="A **framed** illustration."
+  hint="Frames center and caption visuals."
+>
+  <img src="/screenshot.png" alt="Product screenshot" />
+</Frame>
+```
+
+## YouTube
+
+YouTube 動画を、レスポンシブでプライバシーに配慮した（`youtube-nocookie.com`）16:9 のフレームに埋め込みます。クライアント JavaScript は一切含まれません。動画の `id` または完全な `url` に加え、任意の `title`（アクセシビリティ用）と秒単位の `start` 時間を渡せます。
+
+[Big Buck Bunny](https://www.youtube.com/watch?v=aqz-KE-bpKQ)
+
+```astro lineNumbers
+<YouTube id="aqz-KE-bpKQ" title="Big Buck Bunny" />
+<YouTube url="https://youtu.be/aqz-KE-bpKQ" start={30} />
+```
+
+## Color
+
+コピー可能な 16 進数値とともにカラースウォッチを表示します — パレットやブランドカラーを文書化するのに便利です。スウォッチのリストには `variant="compact"` を、グループ化するには `Color.Row` と併せて `variant="table"` を使います。各 `Color.Item` は `name` と `value`（16 進数の文字列、またはテーマ対応の色のための `{ light, dark }`）を受け取ります。テーマ対応のスウォッチでは、読者が表示しているテーマの値がコピーされます。
+
+- **blue-500**: `#3B82F6`
+
+- **green-500**: `#16A34A`
+
+- **background**: `#FFFFFF` (light), `#0A0A0A` (dark)
+
+```astro lineNumbers
+<Color variant="compact">
+  <Color.Item name="blue-500" value="#3B82F6" />
+  <Color.Item name="green-500" value="#16A34A" />
+  <Color.Item name="background" value={{ light: "#FFFFFF", dark: "#0A0A0A" }} />
+</Color>
+```
+
+## Tree
+
+展開可能なフォルダを備えた階層的なファイル／フォルダ構造を描画します。（リスト駆動の手軽な方法については [ファイルツリー](#file-tree) を参照してください。`Tree` はフォルダごとの制御が可能です。）`Tree.Folder`（`name`、任意の `defaultOpen`、`openable`）と `Tree.File`（`name`）を使います。
+
+- src/
+  - index.ts
+  - components/
+    - Button.tsx
+- blume.config.ts
+
+```astro lineNumbers
+<Tree>
+  <Tree.Folder name="src" defaultOpen>
+    <Tree.File name="index.ts" />
+    <Tree.Folder name="components">
+      <Tree.File name="Button.tsx" />
+    </Tree.Folder>
+  </Tree.Folder>
+  <Tree.File name="blume.config.ts" />
+</Tree>
+```
+
+## Panel
+
+脇に置いておく補足的なコンテンツのための、タイトル付きコンテナです。`title` は任意です。
+
+**知っておくと便利**
+
+パネルは、本文の流れを妨げずに補足的な詳細を収められます。
+
+```astro
+<Panel title="Good to know">
+  Panels hold supporting detail without interrupting the main flow.
+</Panel>
+```
+
+## Tooltip
+
+インラインの用語について、ホバー時に定義やヒントを表示します。`tip` がホバー時のテキストです。任意で `headline` と、フォローアップリンク用の `cta` + `href` を追加できます。
+
+API (API: ソフトウェアが通信に使う一連のプロトコル。)
+
+という用語にホバーすると詳細がわかります。
+
+```astro
+Hover the <Tooltip tip="A set of protocols software uses to communicate." headline="API" cta="Read the guide" href="/docs/quickstart">API</Tooltip> term.
+```
+
+## Tile
+
+ビジュアル（アイコンや画像）を前面に出し、その下にタイトルと説明を配置したクリック可能なプレビューです。ギャラリーやショーケースに適しています。`title`、`description`、`href` を受け取り、子要素がビジュアルになります。
+
+**[クイックスタート](https://useblume.dev/ja/docs/quickstart)**
+
+数分で最初のページを公開しましょう。
+
+```astro
+<Tile
+  title="Quickstart"
+  description="Ship your first page in minutes."
+  href="/docs/quickstart"
+>
+  <Icon icon="rocket" size={28} />
+</Tile>
+```
+
+## Prompt
+
+ラベルとコピーボタンからなる 1 行の要素です。`description`（Markdown）が表示されるラベルで、本文がプロンプトそのものになります。本文は非表示で、**Copy prompt** ボタンを押すと、リンク、リスト、コードをそのまま保った Markdown としてクリップボードにコピーされます。`actions` でボタンを制御します（例: `["copy", "cursor"]`）。
+
+**エンドポイントを**ドキュメント化**するようモデルに依頼します。**
+
+> POST /v1/pets エンドポイントのリファレンスドキュメントを書いてください。
+
+```astro
+<Prompt
+  description="Ask the model to **document** an endpoint."
+  actions={["copy"]}
+>
+  Write reference docs for the POST /v1/pets endpoint.
+</Prompt>
+```
+
+## Visibility
+
+対象読者に応じてコンテンツを表示または非表示にします。`for="web"` はサイト上にのみ描画され、`for="agents"` は AI エージェントが読むエージェント向け Markdown（`llms-full.txt` と各ページの `.md` ミラー）を対象とします。
+
+```astro
+<Visibility for="web">Shown on the site only.</Visibility>
+<Visibility for="agents">Shown only in the generated Markdown.</Visibility>
+```
+
+## 型テーブル [#type-tables]
+
+オブジェクトのプロパティ — プロパティ、型、デフォルト値 — を文書化するためのテーブルです。`TypeTable` で行を手書きするか、`AutoTypeTable` で TypeScript のインターフェースや型エイリアスから直接生成できます。
+
+### 型テーブル [#type-table]
+
+各行を展開すると説明と詳細が現れる、**プロパティ / 型**のグリッドです。プロパティ名をキーとする `type` マップを渡します。各エントリは `type` に加えて、任意の `description`、`default`、`required` フラグ、`typeDescription`、`typeDescriptionLink` を受け取ります。省略可能なプロパティ（`required` が未設定）は、名前の後に `?` が表示されます。
+
+| Prop | Type | Default | Description |
+| - | - | - | - |
+| `label` | `string` | - | ボタンに表示されるラベル。 |
+| `variant?` | `"primary" \| "ghost"` | `"primary"` | 見た目のスタイル。 |
+| `disabled?` | `boolean` | - | |
+
+```astro lineNumbers
+<TypeTable
+  type={{
+    label: {
+      type: "string",
+      required: true,
+      description: "The button's visible label.",
+    },
+    variant: {
+      type: '"primary" | "ghost"',
+      default: '"primary"',
+      description: "Visual style.",
+    },
+    disabled: { type: "boolean" },
+  }}
+/>
+```
+
+### 自動型テーブル [#auto-type-table]
+
+TypeScript の型から型テーブルを生成し、ドキュメントをソースと同期させ続けます。`AutoTypeTable` に `path`（プロジェクトルートからの解決）と型の `name` を指定します。説明は JSDoc コメントから、デフォルト値は `@default` タグから取得され、省略可能なプロパティ（`?`）はそれに応じて示されます。
+
+```astro
+<AutoTypeTable path="./src/button.ts" name="ButtonProps" />
+```
+
+`path` の代わりに `type` で型をインラインで渡すこともできます — 小さな例に便利です。
+
+<AutoTypeTable
+  name="ButtonProps"
+  type={`
+export interface ButtonProps {
+  /** The button's visible label. */
+  label: string;
+  /**
+   * Visual style.
+   * @default "primary"
+   */
+  variant?: "primary" | "ghost";
+  /** Disable interaction. */
+  disabled?: boolean;
+}
+`}
+/>
+
+```astro lineNumbers
+<AutoTypeTable
+  name="ButtonProps"
+  type={`
+export interface ButtonProps {
+  /** The button's visible label. */
+  label: string;
+  /**
+   * Visual style.
+   * @default "primary"
+   */
+  variant?: "primary" | "ghost";
+  /** Disable interaction. */
+  disabled?: boolean;
+}
+`}
+/>
+```
+
+## GitHub 情報 [#github-info]
+
+GitHub リポジトリへのリンクを、スター数とフォーク数とともに表示するカードです。カウントはビルド時に取得され — クライアント JavaScript は不要 — リアルタイムの値ではなく、最後にビルドした時点の数値が表示されます。API に到達できない場合でも、カードはカウントなしで描画されます。`owner` と `repo` を渡すか、省略して `blume.config` のリポジトリを使用します。API のレート制限を緩和するには、環境変数 `GITHUB_TOKEN` を設定してください。`token` プロパティを指定すると特定のカードだけその値を上書きできますが、環境変数を使えばトークンをコンテンツに含めずに済みます。
+
+このカードはインスタンスを [`github.host`](configuration.md#github-enterprise) から読み取ります。そのため Enterprise でホストされているサイトでは、明示的に指定した `owner` / `repo` もそのインスタンスを参照します。特定のカードだけ別の場所を指すようにするには `host` を渡します — 例えば Enterprise のサイトから公開プロジェクトを示す場合などです。REST のベースは、`github.host` の場合と同じ方法でそこから導出されます。
+
+[haydenbleasel/blume](https://github.com/haydenbleasel/blume)
+
+```astro lineNumbers
+<!-- Uses the repo from blume.config -->
+<GithubInfo />
+
+<!-- Or point it at any repository -->
+<GithubInfo owner="haydenbleasel" repo="blume" />
+
+<!-- Or at a repository on another instance -->
+<GithubInfo host="https://github.com" owner="haydenbleasel" repo="blume" />
+```
+
+## Component
+
+`Component` は、プロジェクトの `examples/` ディレクトリにあるサンプルファイルを、ハイライトされたソースと並べてタブ形式でライブプレビューとして描画します。`path` でファイルを指定します — `examples/` 配下の位置から拡張子を除いたもの（つまり `examples/counter.tsx` なら `path="counter"`）。React、Vue、Svelte、Astro のサンプルがすべてサポートされ、フレームワークのサンプルはハイドレートされ、Astro のものは静的に描画されます。単一のファイルからプレビューとコードを同期させ続けます。
+
+プレビューは、ドキュメントのスタイルが一切届かない独立したフレーム内で描画されます — 本文のマージン、タイポグラフィ、テーマの装飾がコンポーネントに漏れ込むことはありません。フレームには Tailwind（プリフライトと、プロジェクトおよび examples ディレクトリからスキャンされたユーティリティ）と、`bg-background` のようなクラスがデフォルトでサイトのパレットに従うようにする Blume のデザイントークンが与えられ、サイトのライト／ダーク切り替えにリアルタイムで追従します。ペインは描画されたサンプルに合わせてサイズを調整し — 読み込み後にサンプルが拡大・縮小しても追従し続けます — Preview タブと Code タブは同じ高さを共有するため、切り替えてもページがずれることはありません。
+
+shadcn の変数など、独自のデザインシステムでプレビューをスタイリングするには、`examples.css` にスタイルシートを指定します。これは Blume のデフォルトの後に各プレビューフレームへ注入されるため、あなたのトークンが優先されます。その中で `@import "tailwindcss"` は書かないでください。フレームはすでに Tailwind を提供しています。ダークモードのオーバーライドには `.dark` と `[data-theme="dark"]` のどちらも使えます。
+
+```ts
+// blume.config.ts
+export default defineConfig({
+  examples: { css: "examples/theme.css" },
+});
+```
+
+```css
+/* examples/theme.css */
+:root {
+  --primary: oklch(0.6 0.2 260);
+}
+
+.dark {
+  --primary: oklch(0.75 0.15 260);
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+}
+```
+
+ディレクトリも設定可能です — サンプルが別の場所（レジストリ構成など）にある場合は `source` を設定します（または文字列の省略記法 `examples: "..."` を使います）。`path` は常にそこからの相対パスになります。
+
+```ts
+// blume.config.ts
+export default defineConfig({
+  examples: "registry/files-sdk",
+});
+```
+
+```astro
+<!-- registry/files-sdk/file-list/basic.tsx -->
+<Component path="file-list/basic" />
+```
+
+`examples` には glob（`*`、`?`、`[]`、`{}`、`!` を含むもの）も指定できます。マッチしたファイルのみが検出され、`path` は glob の静的なプレフィックス（最初のワイルドカードより前の部分）からの相対パスになります。これは、各コンポーネントのソースをそのサンプルと同じ場所に置くレジストリ向けです — プレビュー用のデフォルトエクスポートを持たないソースが巻き込まれないよう、サンプルだけを指定してください。
+
+```ts
+// blume.config.ts
+export default defineConfig({
+  // registry/files-sdk/file-list/file-list.tsx — source, left out
+  // registry/files-sdk/file-list/examples/basic.tsx — discovered
+  examples: "registry/files-sdk/**/examples/*",
+});
+```
+
+```astro
+<!-- keyed relative to registry/files-sdk -->
+<Component path="file-list/examples/basic" />
+```
+
+モノレポでは、サンプルがインポートするコンポーネントは通常、隣接するワークスペースパッケージに置かれています。Tailwind の `@source` はインポートではなくファイルをスキャンします。Blume がスキャンするのはプロジェクトと `examples` ディレクトリ（`source` が指す場所。プロジェクト外でも可）なので、その隣接パッケージ内でしか使われていないクラスは、そのパッケージをスキャン対象に加えるまで生成されません。追加するには、`examples.css`（プレビューフレーム向け）または `theme.css`（サイト向け）に `@source` ディレクティブを記述します。パスは Tailwind の標準ルールどおり、そのディレクティブが置かれたファイルからの相対で書きます。Blume はそれを生成されるスタイルシートへ引き継ぎます。
+
+```css
+/* examples/theme.css */
+@source "../../../packages/ui/src";
+```
+
+<Component path="counter" />
+
+```astro
+<!-- examples/counter.tsx -->
+<Component path="counter" />
+```
+
+Astro のサンプルは、クライアント JavaScript なしでライブに描画されます。
+
+<Component path="card" />
+
+## CodeBlock
+
+`CodeBlock` は、フェンス付きコードと同じ Shiki のテーマとトランスフォーマー（ライト／ダークの切り替えを含む）でコード文字列をハイライトします。ランディングページや独自のコンポーネントなど、フェンスを置けない場所のためのものです。`code` と `lang` を渡します。
+
+```ts
+export const greet = (name: string): string =>
+`Hello, ${name}!`;
+```
+
+```astro
+---
+import CodeBlock from "blume/components/content/CodeBlock.astro";
+---
+
+<CodeBlock lang="ts" code={source} />
+```
+
+`title` はヘッダーのラベル（例えばファイル名）を設定します。指定しない場合は言語が表示されます。`icons={false}` を指定すると、フェンスに対する [`markdown.code.icons`](syntax.md#code-blocks) と同様に、言語のブランドアイコンが非表示になります。
+
+（独自コンポーネントの中などで）自分で HTML 文字列にハイライトしたい場合は、`blume/markdown` から基盤となるヘルパーをインポートします。
+
+```ts
+import { highlightCode } from "blume/markdown";
+
+const html = await highlightCode(source, "ts");
+```
+
+## Diff
+
+`Diff` は git 形式の差分を、コードブロックと同じ Shiki のテーマでハイライトして描画します。すべてビルド時に生成されるため、クライアント JavaScript は不要です。2 つのインライン文字列（`old` / `new`）、2 つのファイルパス（`before` / `after`）、または unified 形式のパッチ（インラインの `patch` 文字列か `src` ファイル）を渡します。
+
+**Before**
+
+```ts
+export function greet(name) {
+return "Hi, " + name;
+}
+```
+
+**After**
+
+```ts
+export function greet(name: string): string {
+return "Hi, " + name + "!";
+}
+```
+
+```astro
+<Diff
+  lang="ts"
+  old={`export function greet(name) {
+  return "Hi, " + name;
+}`}
+  new={`export function greet(name: string): string {
+  return "Hi, " + name + "!";
+}`}
+/>
+```
+
+プロジェクト内の 2 つのファイルを、ルートからの相対パスで差分表示します。
+
+<Diff before="diffs/button-before.ts" after="diffs/button-after.ts" />
+
+```astro
+<Diff before="diffs/button-before.ts" after="diffs/button-after.ts" />
+```
+
+あるいは unified 形式のパッチを描画します — `src` でファイルから読み込むか、`patch` でインラインに指定します。
+
+<Diff src="diffs/greet.patch" />
+
+```astro
+<Diff src="diffs/greet.patch" />
+```
+
+```astro
+<Diff
+  patch={`--- a/greet.ts
++++ b/greet.ts
+@@ -1,3 +1,4 @@
+-export function greet(name) {
+-  return "Hi, " + name;
++export function greet(name: string): string {
++  const greeting = "Hi, " + name + "!";
++  return greeting;
+ }`}
+/>
+```
+
+<!-- Sources: apps/docs/dist/client/ja/docs/content/components.md -->

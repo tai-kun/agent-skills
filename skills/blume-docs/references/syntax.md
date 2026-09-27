@@ -1,0 +1,656 @@
+---
+name: blume-syntax
+description: Blume がレンダリングする Markdown と MDX の全機能を説明します。書式設定、リスト、テーブル、コールアウト、コードブロック、パッケージインストール、数式を扱います。
+---
+
+# 構文
+
+Blume は、標準的な Markdown と MDX を、厳選された GitHub Flavored の機能セットでレンダリングします — インポートも設定も不要です。これまでどおりの書き方でコンテンツを書いてください。このページでは、サポートされているすべての機能を、ライブプレビューと各ソースとともに紹介します。
+
+## 見出し [#headings]
+
+見出しでページを構造化します。Blume はフロントマターの `title` をページ見出しとしてレンダリングするため、コンテンツは `##` から始めてください — `##` と `###` は目次の項目になります。`##`〜`######` のすべての見出しは、それ自身のアンカーへのリンクでも囲まれるため、読者は見出しをクリックしてそのセクションへのパーマリンクをコピー、ブックマーク、共有できます（ホバーすると `#` が表示されます）。これをオフにするには、`blume.config.ts` で `markdown: { headingAnchors: false }` を指定します。
+
+```md
+## Section
+
+### Subsection
+
+#### Detail
+```
+
+### カスタムアンカー [#custom-anchors]
+
+アンカーの id は見出しのテキストから生成されるため、見出しの文言を変えると新しいアンカーになります。代わりにアンカーを固定するには `[#custom-id]` を末尾に付けます — このマーカーはレンダリングされず、見出しの文言がどうなってもリンクは機能し続けます。固定したアンカーは[翻訳されたロケール](i18n.md)間でも同一のまま保たれます。自動生成された id では言語ごとに異なってしまうためです。
+
+```md
+## Getting started [#setup]
+```
+
+`/page#setup` としてリンクします。この構文は Fumadocs と一致するため、移行したコンテンツはそのまま動作します。
+
+Pandoc、kramdown、および Markdown ベースの仕様策定ツールチェーンで使われる `{#custom-id}` 形式は、`.md` ファイルでは同等のものとして受け付けられます。`.mdx` では、裸の `{…}` は JSX 式となりページのコンパイルに失敗します — `blume check` はこのマーカーを `BLUME_MDX_CURLY_ANCHOR` として報告します — そのため、そこでは `[#custom-id]` と書くか、波括弧をエスケープしてください。エスケープした形式はどちらのフォーマットでも同じアンカーを固定するため、`.mdx` ページが[インクルード](includes.md)するパーシャルにはこの書き方が適しています：
+
+```md
+## Getting started \{#setup\}
+```
+
+フラグメントリンクは、`id` を持つ生の HTML 要素（`<a id="setup"></a>`）を対象にすることもできます。`blume validate` は見出しアンカーと並んでそれらも受け付けます。
+
+### 目次マーカー [#table-of-contents-markers]
+
+さらに 2 つの末尾マーカーが、見出しを目次にどう表示するかを制御します。`[!toc]` は見出しをページ上に残しつつ目次からは除外します。`[toc]` はその逆で、見出しは目次にのみ表示され、ページ上では不可視のアンカーターゲットになります — 散文ではなくコンポーネントで構成されたセクションにラベルを付けるのに便利です。マーカーは任意の順序で連結できます。CommonMark から受け継いだ例外が 1 つあります：末尾の角括弧のラベルに対して、ページ内のどこかにリンク参照定義（`[toc]: /url`）がある場合、それはマーカーではなくショートカット参照リンクとなり、見出しのテキストに残ります。
+
+```md
+## Appears on the page only [!toc]
+
+## Appears in the TOC only [toc]
+
+## Both markers together [toc] [#custom-id]
+```
+
+マーカーは常に解析されます — 文字どおりマーカーの形をしたテキストで終わる見出しは、マーカー付きとして扱われます。バックスラッシュによるエスケープは役に立ちません（マーカーの解析が走る前に、Markdown が `\[` を `[` に解決するためです）。見出しの末尾にマーカーそのものの文字列を表示するには、インラインコードで囲んでください：`` ## Using `[toc]` ``。
+
+## 強調 [#emphasis]
+
+単語を強調したり、削除を示したり、文中でコードやキー入力を表示したりするためのインライン書式です。
+
+**太字**、_斜体_、~~取り消し線~~、そして `inline code`。
+
+```md
+**Bold**, _italic_, ~~strikethrough~~, and `inline code`.
+```
+
+## キーボードキー [#keyboard-keys]
+
+ショートカットやキー入力のために使います。`<kbd>` 要素は、検索ダイアログで使われているものと同じ枠線付きのキーバッジとしてレンダリングされます — Markdown、MDX、そして `<Steps>` や `<Callout>` のようなコンポーネントの内部でも同様です。
+
+<kbd>⌘</kbd> <kbd>K</kbd> を押すと検索が開き、<kbd>Esc</kbd> を押すと閉じます。
+
+```md
+Press <kbd>⌘</kbd> <kbd>K</kbd> to open search, or <kbd>Esc</kbd> to close it.
+```
+
+## 上付き文字と下付き文字 [#superscript-and-subscript]
+
+脚注記号、序数、そして科学表記や化学表記をインラインで表現するために使います。
+
+E = mc^2^ と H~2~O。
+
+{/* prettier-ignore */}
+```md
+E = mc^2^ and H~2~O.
+```
+
+## 引用 [#blockquotes]
+
+引用、補足のコールアウト、編集上の注記を周囲の本文から切り離します。
+
+> 高速で、AI に対応し、設定不要のドキュメント — テンプレートに至るまで。
+
+```md
+> Documentation that's fast, AI-ready, and zero-config — down to the template.
+```
+
+## リスト [#lists]
+
+順序のない集合には箇条書きリスト、順序のある手順には番号付きリスト、チェックリストやロードマップにはタスクリストを使います。
+
+- Markdown ファーストの執筆
+- デフォルトで静的
+  - サーバー機能はオプトイン
+- 出力は自分のもの
+
+1. Blume をインストールする
+2. ページを書く
+3. 公開する
+
+- [x] プロジェクトの雛形を作成
+- [ ] 最初のガイドを書く
+
+```md
+- Markdown-first authoring
+- Static by default
+  - Opt into server features
+- Own your output
+
+1. Install Blume
+2. Write a page
+3. Ship it
+
+- [x] Scaffold the project
+- [ ] Write the first guide
+```
+
+## テーブル [#tables]
+
+設定オプション、比較表、パラメータ一覧といった構造化データを表にします。区切り行にコロンを使うと、列を揃えられます。
+
+| コマンド      | 説明                   |  出力   |
+| ------------- | ---------------------- | :-----: |
+| `blume dev`   | 開発サーバーを起動する |    —    |
+| `blume build` | 静的サイトをビルドする | `dist/` |
+
+```md
+| Command       | Description           | Output  |
+| ------------- | --------------------- | :-----: |
+| `blume dev`   | Start the dev server  |    —    |
+| `blume build` | Build the static site | `dist/` |
+```
+
+ヘッダー行のないテーブル — 例えばキーと値の組 — が必要な場合は、ヘッダーのセルを空のままにします。Markdown は構文上ヘッダー行と区切り行を必要としますが、Blume はレンダリングされたテーブルから空のヘッダーを取り除きます。
+
+```md
+|                |          |
+| -------------- | -------- |
+| Current status | E-3 visa |
+```
+
+## リンクと画像 [#links-and-images]
+
+他のページや外部サイトにリンクします。画像には、コンテンツの隣にあるファイルへの相対パス、`public/` 以下の任意のパス（サイトルートで配信されます）、またはリモート URL を指定できます。
+
+相対ページリンク（`./install`、`../guides/setup`）は、そのページ自身のフォルダを基準に解決されます — インデックスページの場合は、そのページが紹介するフォルダが基準になります — また、Markdown ファイルへのリンク（`./setup.md`、`../intro.mdx`）は、そのファイルが公開するページ（`slug` も反映されます）に遷移します。ドットを含むページ名（`node.js.mdx` ページに対する `./node.js`）は、その場所でページが公開されていればページリンクとして扱われ、コンポーネントの文字列の `href`（`<Card href="./install">`）も同じように解決されます。Blume はビルドされたページでそれぞれをルート相対のパスとして書き出すため、GitHub や Docusaurus 向けに書かれたリンクもそのまま機能し、[`blume validate`](https://useblume.dev/ja/docs/cli/validate) も同じ方法でそれらをチェックします。
+
+まずは[クイックスタート](https://useblume.dev/ja/docs/quickstart)をお読みください。
+
+```md
+Read the [quickstart](/docs/quickstart) to get started.
+
+![Alt text](./screenshot.png)
+```
+
+外部リンクはデフォルトで同じタブで開きます。Blume のヘッダーやサイドバーのリンクと同じように新しいタブで開くには、`blume.config.ts` で `markdown: { externalLinks: true }` を指定します：`https://` または `//host` で始まるすべての絶対リンクに、`target="_blank"` と `rel="noreferrer"`、テキストの後ろの小さな矢印、そして新しいタブで開くことを伝えるスクリーンリーダー向けの注記が付与されます。自分のページへのリンク、`#fragments`、`mailto:`/`tel:` のリンクは同じタブで開き、生の `<a>` タグも同様です — こちらは書いたとおりの属性が保たれます。
+
+**ローカル画像には相対パスを推奨します** — ビルド時に最適化されるためです：圧縮され、WebP に変換され、固有の `width`/`height` が付与されるので、読み込み中にページがずれません。画像はそれを使うページの隣（またはコンテンツディレクトリ内の共有フォルダ）に置き、相対パスで参照してください：
+
+```md
+![Build output](./images/build-output.png)
+```
+
+`public/` 以下の絶対パス（`![Alt text](/screenshot.png)`）は最適化なしでそのまま配信されます — ドキュメントの外から参照されるロゴのように、バイト列と URL を厳密に保つ必要があるファイルに使ってください。リモート画像も、そのホストが [`image` 設定](configuration.md#images)で許可されていない限り、手を加えずにそのまま渡されます。
+
+コンテンツ内の画像はデフォルトでクリックしてズームできます — 読者は任意の画像をクリックしてライトボックスで開けます。これをオフにするには `blume.config.ts` で `markdown: { imageZoom: false }` を指定するか、`data-no-zoom` で個別の画像だけ除外します。
+
+## 水平線 [#horizontal-rule]
+
+長いページの中で、話題が大きく切り替わる箇所を区切ります。
+
+---
+
+```md
+---
+```
+
+## コードブロック [#code-blocks]
+
+フェンス付きコードブロックは構文ハイライトされ、言語を示すヘッダー（認識された言語にはブランドアイコン付き）とコピーボタンが表示されます。言語の後に**タイトル** — 通常はファイル名 — を追加すると、ヘッダーの言語ラベルの代わりに表示されます。
+
+```ts blume.config.ts
+import { defineConfig } from "blume";
+
+export default defineConfig({
+  title: "My docs",
+});
+```
+
+````md
+```ts blume.config.ts
+import { defineConfig } from "blume";
+
+export default defineConfig({
+  title: "My docs",
+});
+```
+````
+
+インラインコードもハイライトできます：バッククォートで囲んだ範囲の中に `{:lang}` マーカーを追加すると、小さなコードブロックのように色付けされます — `useState(){:js}` や `T extends object{:ts}` のように。マーカーを追加したときだけ有効になるので、通常のインラインコードはそのままです — 何かを有効にする必要はありません。
+
+ハイライトはデフォルトで `github-light`/`github-dark` テーマを使います。`markdown.code.theme` を使えば、カラーモードごとに任意の[同梱 Shiki テーマ](https://shiki.style/themes)に差し替えられます — すべてのコード表示（フェンス、インラインスニペット、`<CodeBlock>`、`<Diff>`）が一度に色付けされます：
+
+```ts blume.config.ts
+export default defineConfig({
+  markdown: {
+    code: {
+      theme: { light: "github-light", dark: "vesper" },
+    },
+  },
+});
+```
+
+カスタムの [Shiki テーマ定義](https://shiki.style/guide/load-theme)を直接指定することもできます。VS Code 互換のテーマ JSON ファイルをインポートし（ランタイムが必要とする場合はインポート属性を使います）、いずれかのカラーモードに割り当ててください。同梱テーマ名とカスタム定義を混在させることもできます：
+
+```ts blume.config.ts
+import darkTheme from "./themes/acme-dark.json" with { type: "json" };
+
+export default defineConfig({
+  markdown: {
+    code: {
+      theme: { light: "github-light", dark: darkTheme },
+    },
+  },
+});
+```
+
+### 行番号 [#line-numbers]
+
+`lineNumbers` を付けると行番号の余白がレンダリングされます — 単独でも、タイトルと併用しても使えます：
+
+```ts server.ts lineNumbers
+import { createServer } from "node:http";
+
+createServer().listen(3000);
+```
+
+````md
+```ts server.ts lineNumbers
+import { createServer } from "node:http";
+
+createServer().listen(3000);
+```
+````
+
+### ハイライト [#highlighting]
+
+GitHub 形式のコメントでコードに注釈を付け、行・単語・変更点に注目を集めます。コメントはレンダリング結果から取り除かれるので、コードはコピー＆ペーストしてもきれいなままです。4 種類すべてデフォルトで有効です — 設定は不要です。
+
+`// [!code highlight]` で行に印を付けると、その行の背景がハイライトされます：
+
+```ts
+const config = defineConfig({
+  title: "My docs", // [!code highlight]
+});
+```
+
+追加は `// [!code ++]`、削除は `// [!code --]` で変更を示すと、緑／赤の差分としてレンダリングされます：
+
+```ts
+export default defineConfig({
+  title: "My docs", // [!code --]
+  title: "Blume docs", // [!code ++]
+});
+```
+
+`// [!code word:createServer]` で、行内のある語のすべての出現箇所をハイライトします：
+
+```ts
+import { createServer } from "node:http"; // [!code word:createServer]
+
+createServer().listen(3000);
+```
+
+`// [!code focus]` で印を付けた行以外をすべて暗くします（残りはホバーすると鮮明になります）：
+
+```ts
+export default defineConfig({
+  title: "My docs", // [!code focus]
+  description: "Built with Blume",
+});
+```
+
+または、コメントの代わりに**行番号**で行をハイライトすることもできます — コードを編集できない場合に便利です。言語の後に波括弧で範囲を書きます。単一行、カンマ区切りのリスト、`start-end` の範囲がすべて使えます：
+
+```ts {1,4-5}
+import { defineConfig } from "blume";
+
+export default defineConfig({
+  title: "My docs",
+  description: "Built with Blume",
+});
+```
+
+````md
+```ts {1,4-5}
+import { defineConfig } from "blume";
+
+export default defineConfig({
+  title: "My docs",
+  description: "Built with Blume",
+});
+```
+````
+
+### 表示タイプ [#display-types]
+
+TypeScript のブロックに `twoslash` を付けると、コンパイラから直接得られた実際の型が表示されます — [Twoslash](https://shiki.style/packages/twoslash) によるものです。任意のトークンにホバーすると推論された型が表示され、インラインの `^?` クエリを追加すると、その行の下に型を固定表示できます。
+
+```ts twoslash
+const config = {
+  title: "My docs",
+  version: 1,
+};
+
+config.title;
+//     ^?
+```
+
+````md
+```ts twoslash
+const config = { title: "My docs", version: 1 };
+
+config.title;
+//     ^?
+```
+````
+
+### TypeScript と JavaScript のタブ [#typescript-and-javascript-tabs]
+
+`ts` または `tsx` のブロックに `ts2js` を付けると、タブの組としてレンダリングされます：あなたの TypeScript と、自動生成された JavaScript 版が並ぶので、スニペットは 1 つだけ保守すれば、読者は自分の方言を選べます。変換では型構文と型のみのインポートが取り除かれ、書式・コメント・JSX は書いたとおりに保たれます — さらにタブは同期するため、一度 JavaScript を選ぶとページ上のすべての組が切り替わります。図表や数式と同様に、これは MDX 専用の機能です — `.md` ファイルではこのブロックは通常の TypeScript フェンスとしてレンダリングされます。
+
+```ts ts2js
+import { defineConfig } from "blume";
+
+interface Author {
+  name: string;
+}
+
+const author: Author = { name: "Hayden" };
+
+export default defineConfig({
+  title: `${author.name}'s docs`,
+});
+```
+
+````md
+```ts ts2js
+import { defineConfig } from "blume";
+
+interface Author {
+  name: string;
+}
+
+const author: Author = { name: "Hayden" };
+
+export default defineConfig({
+  title: `${author.name}'s docs`,
+});
+```
+````
+
+その他のフェンスのメタ情報も組み合わせられます：`title="..."` は両方のタブに表示され、`{1,4-5}` の行範囲は TypeScript のタブにのみ適用されます（型がなくなると行番号がずれるためです）。唯一の例外は `twoslash` です — ホバー時の型は生成されたコードには引き継げないため、両方を付けたフェンスは通常の Twoslash ブロックのままになります。
+
+:::note
+言語アイコンを非表示にしたり、長い行をスクロールさせる代わりに折り返したりするには、`blume.config.ts` で `markdown: { code: { icons: false, wrap: true } }` を指定します。
+:::
+
+## パッケージインストール [#package-install]
+
+`package-install` ブロックは、1 つのインストールコマンドを npm、pnpm、yarn、bun、nub、aube のタブ付きスニペットに変換します — 読者は自分の環境に合ったものをコピーできます。図表や数式と同様に、これは MDX 専用の機能です — `.md` ファイルではこのブロックは通常のコードフェンスとしてレンダリングされます。
+
+```package-install
+npm i blume
+```
+
+````md
+```package-install
+npm i blume
+```
+````
+
+## 図表 [#diagrams]
+
+`mermaid` ブロックは、テキストから直接 [Mermaid](https://mermaid.js.org) の図をレンダリングします。フェンスの内容はそのまま Mermaid に渡されるため、Mermaid がサポートするあらゆる図の種類がここで使えます。図はアクティブなカラーテーマに従い、テーマが変わると再レンダリングされます。ソースを `mermaid` でフェンスして記述します：
+
+````md
+```mermaid
+flowchart LR
+  A[Markdown] --> B{blume build}
+  B --> C[Static HTML]
+  B --> D[llms.txt]
+```
+````
+
+図はクライアント側でレンダリングされるため、これは MDX 専用の機能であり、Mermaid ライブラリは図を含むページでのみ読み込まれます。図が 1 つもないサイトでは、ライブラリはまったく配信されません。図はデフォルトで Mermaid の dagre レイアウトと classic の外観を使います。Mermaid のフロントマター（`layout: elk` や `look: neo` を指定した `config:` ブロック）を使えば、個別の図だけを別のレイアウトや外観に切り替えられます。ELK エンジンは、それを要求する図に対してのみ読み込まれます。このセクションの残りは代表的な種類のギャラリーです — 全一覧は [Mermaid のドキュメント](https://mermaid.js.org/intro/)を参照してください。
+
+### フローチャート [#flowchart]
+
+```mermaid
+flowchart LR
+  A[Markdown] --> B{blume build}
+  B --> C[Static HTML]
+  B --> D[llms.txt]
+```
+
+### シーケンス図 [#sequence-diagram]
+
+```mermaid
+sequenceDiagram
+  participant R as Reader
+  participant B as Blume
+  R->>B: Request /docs
+  B-->>R: Prerendered HTML
+```
+
+### クラス図 [#class-diagram]
+
+```mermaid
+classDiagram
+  class Page {
+    +string title
+    +string route
+    +render()
+  }
+  Page <|-- Doc
+  Page <|-- Changelog
+```
+
+### 状態遷移図 [#state-diagram]
+
+```mermaid
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Published: build
+  Published --> [*]
+```
+
+### ER 図 [#entity-relationship]
+
+```mermaid
+erDiagram
+  PAGE ||--o{ HEADING : contains
+  PAGE {
+    string title
+    string route
+  }
+```
+
+### ユーザージャーニー [#user-journey]
+
+```mermaid
+journey
+  title Publishing a page
+  section Write
+    Draft MDX: 5: Author
+  section Ship
+    blume build: 4: Author
+    Deploy: 3: Author
+```
+
+### ガントチャート [#gantt]
+
+```mermaid
+gantt
+  title Release plan
+  dateFormat YYYY-MM-DD
+  section Docs
+    Draft   :a1, 2026-01-01, 7d
+    Review  :after a1, 3d
+```
+
+### Git グラフ [#git-graph]
+
+```mermaid
+gitGraph
+  commit
+  branch develop
+  checkout develop
+  commit
+  checkout main
+  merge develop
+  commit
+```
+
+### 円グラフ [#pie-chart]
+
+```mermaid
+pie title Content types
+  "Docs" : 70
+  "Blog" : 20
+  "Changelog" : 10
+```
+
+### マインドマップ [#mindmap]
+
+```mermaid
+mindmap
+  root((Blume))
+    Content
+      MDX
+      Markdown
+    Build
+      Static HTML
+      llms.txt
+```
+
+### タイムライン [#timeline]
+
+```mermaid
+timeline
+  title Blume milestones
+  2025 : Prototype
+  2026 : 1.0 release
+```
+
+## コールアウト [#callouts]
+
+コールアウトは、背景情報・助言・リスクに読者の注意を向けます。`:::type` ディレクティブとして書き、`:::warning[Heads up]` のように角括弧でタイトルを追加できます。ディレクティブは MDX 専用の機能です — `.md` ファイルでは `:::note` の行はそのまま文字列として残ります。
+
+### Note
+
+読者が心に留めておくべき、中立的な補足情報です。
+
+:::note
+Blume は実行のたびに `.blume/` を再生成します — 手動で編集しないでください。
+:::
+
+```md
+:::note
+Blume regenerates `.blume/` on every run — never edit it by hand.
+:::
+```
+
+### Tip
+
+必須ではないものの、作業を楽にしてくれる便利な近道やベストプラクティスです。
+
+:::tip
+`deployment.site` を設定すると、サイトマップと Open Graph 画像が絶対 URL を使うようになります。
+:::
+
+```md
+:::tip
+Set `deployment.site` so sitemaps and Open Graph images use absolute URLs.
+:::
+```
+
+### Success
+
+良好な結果や、手順が期待どおりに完了したことを伝えます。
+
+:::success
+ドキュメントのビルドに成功し、デプロイの準備が整いました。
+:::
+
+```md
+:::success
+Your docs built successfully and are ready to deploy.
+:::
+```
+
+### Warning
+
+ミスや予想外の挙動を避けるために注意が必要な点を示します。
+
+:::warning[ご注意]
+サーバー出力をデプロイするには、事前に `blume/deploy` のホストアダプターが必要です。
+:::
+
+```md
+:::warning[Heads up]
+Server output needs a host adapter from `blume/deploy` before you can deploy.
+:::
+```
+
+### Danger
+
+簡単には元に戻せない、破壊的または破壊的変更を伴う操作を警告します。
+
+:::danger
+`blume eject` は一方通行の手順です — 生成された Astro プロジェクトはあなたのものになります。
+:::
+
+```md
+:::danger
+`blume eject` is a one-way step — the generated Astro project becomes yours.
+:::
+```
+
+### Info
+
+情報提供のための補足です。中立的に読める、エイリアスにも使いやすいデフォルトです。
+
+:::info
+コアテーマにはクライアントフレームワークの JS は含まれません。
+:::
+
+```md
+:::info
+The core theme ships no client framework JS.
+:::
+```
+
+`caution`、`error`、`important`、`warn` という名前は、それぞれ `warning`、`danger`、`note`、`warning` のエイリアスとして使えます。
+
+それ以外の名前はコールアウトにはなりません。その場合も内容はレンダリングされ、前後の `:::` の行も書いたとおりページ上に残ります。そのため、他のドキュメントツールから持ち込んだ `:::details` や、`:::warnig` のようなタイプミスがあっても、中身が隠れてしまうことはありません。`blume dev`、`blume build`、`blume check` は、これを `BLUME_UNKNOWN_DIRECTIVE` として警告し、上記のコールアウトの種類を案内します。
+
+コールアウトを別のコールアウトの中に入れるには、外側のコールアウトにより長いフェンスを使います：
+
+```md
+::::note
+Blume regenerates `.blume/` on every run.
+
+:::tip
+Commit `blume.config.ts`, not `.blume/`.
+:::
+::::
+```
+
+## 数式 [#math]
+
+KaTeX で LaTeX を中央揃えのブロックとしてレンダリングします — 数式の多いドキュメントや科学系のドキュメントに便利です。数式を `$$…$$` で囲みます：
+
+$$
+\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}
+$$
+
+```md
+$$
+a^2 + b^2 = c^2
+$$
+```
+
+:::note
+数式はブロック専用で、自動的に有効になります — `$$…$$` と書けばレンダリングされ、書かなければ KaTeX のスタイルシートは一切配信されません。インラインの `$…$` 数式はありません：単独の `$`（通貨、シェル変数、コード）は常にそのままの文字列として扱われるため、エスケープすべき区切り文字も、切り替える設定もありません。数式は MDX 専用の機能です。レンダリングされたマークアップ内のクラス名（`.katex-html`、`.katex-base` など）は KaTeX 自身の内部実装であり、Blume が保証するスタイリングの契約ではありません — KaTeX のアップグレードで変わる可能性があるため、カスタムスタイルは `.katex-display` のラッパーを対象にしてください。
+:::
+
+## スマート句読点 [#smart-punctuation]
+
+Blume は、書いているそばから直線的な引用符やダッシュを組版上の等価な記号に変換するため、特殊文字を使わなくても、組版されたかのように文章が読めます。
+
+"Quotes" は曲線的な引用符になり、-- は en ダッシュ、--- は em ダッシュ、... は省略記号になります。
+
+```md
+"Quotes" become curly, -- becomes an en dash, --- an em dash, and ... an ellipsis.
+```
+
+<!-- Sources: apps/docs/dist/client/ja/docs/content/syntax.md -->

@@ -1,3 +1,6 @@
 [submodule "submodules/vitest"]
 	path = submodules/vitest
 	url = https://github.com/vitest-dev/vitest
+[submodule "submodules/blume"]
+	path = submodules/blume
+	url = https://github.com/haydenbleasel/blume

@@ -49,11 +49,63 @@ function recordSchema<const TSchema extends v.GenericSchema>(value: TSchema) {
   return v.pipe(v.custom<Record<string, unknown>>(isRecord, "オブジェクトである必要があります"), v.record(v.string(), value))
 }
 
+function countCapturingGroups(source: string): number {
+  let count = 0
+  let inClass = false
+  let escaped = false
+  for (let i = 0; i < source.length; i++) {
+    const char = source[i]
+    if (escaped) {
+      escaped = false
+      continue
+    }
+    if (char === "\\") {
+      escaped = true
+      continue
+    }
+    if (char === "[") {
+      inClass = true
+      continue
+    }
+    if (char === "]" && inClass) {
+      inClass = false
+      continue
+    }
+    if (inClass) {
+      continue
+    }
+    if (char === "(") {
+      if (source[i + 1] === "?") {
+        if (source[i + 2] === "<" && source[i + 3] !== "=" && source[i + 3] !== "!") {
+          count++
+        }
+      } else {
+        count++
+      }
+    }
+  }
+  return count
+}
+
 const moduleConfigSchema = objectSchema({
   repository: v.pipe(v.string("文字列である必要があります"), v.nonEmpty("空でない文字列である必要があります")),
   tag_semver: v.pipe(
     v.string("文字列である必要があります"),
     v.check((input) => validRange(input) !== null, "有効な semver 範囲である必要があります"),
+  ),
+  regex: v.optional(
+    v.pipe(
+      v.string("文字列である必要があります"),
+      v.check((input) => {
+        try {
+          new RegExp(input)
+        } catch {
+          return false
+        }
+        return countCapturingGroups(input) === 1
+      }, "有効な正規表現で、1 つのキャプチャグループを含む必要があります"),
+    ),
+    "^v([0-9].+)",
   ),
 })
 
@@ -131,6 +183,31 @@ async function getRegisteredPaths(): Promise<Set<string>> {
   return new Set(paths)
 }
 
+function resolveTag(tags: readonly string[], tagSemver: string, regexSource: string | undefined): string | null {
+  if (regexSource === undefined) {
+    return maxSatisfying(tags, tagSemver)
+  }
+
+  const pattern = new RegExp(regexSource)
+  const candidates: { tag: string; version: string }[] = []
+  for (const tag of tags) {
+    pattern.lastIndex = 0
+    const version = pattern.exec(tag)?.[1]
+    if (version !== undefined) {
+      candidates.push({ tag, version })
+    }
+  }
+
+  const best = maxSatisfying(
+    candidates.map((candidate) => candidate.version),
+    tagSemver,
+  )
+  if (best === null) {
+    return null
+  }
+  return candidates.find((candidate) => candidate.version === best)?.tag ?? null
+}
+
 async function setupModule(name: string, module: ModuleConfig, submodulesDir: string, registered: Set<string>): Promise<LockedModule> {
   const target = resolve(submodulesDir, name)
   const relativeToSubmodules = relative(submodulesDir, target)
@@ -155,7 +232,7 @@ async function setupModule(name: string, module: ModuleConfig, submodulesDir: st
   await git(["fetch", "--tags", "--force", "origin"], target)
 
   const tags = (await git(["tag", "--list"], target)).split("\n").filter((tag) => tag !== "")
-  const tag = maxSatisfying(tags, module.tag_semver)
+  const tag = resolveTag(tags, module.tag_semver, module.regex)
   if (tag === null) {
     throw new Error(`${submodulePath} に "${module.tag_semver}" を満たすタグがありません`)
   }
@@ -164,7 +241,7 @@ async function setupModule(name: string, module: ModuleConfig, submodulesDir: st
   console.log(`[${name}] checkout ${tag} (${module.tag_semver})`)
 
   const commit = await git(["rev-parse", "HEAD"], target)
-  return { repository: module.repository, tag_semver: module.tag_semver, version: tag, commit }
+  return { ...module, version: tag, commit }
 }
 
 async function main(): Promise<void> {

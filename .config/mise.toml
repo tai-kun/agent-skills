@@ -2,6 +2,7 @@
 minimum_release_age = "7d"
 
 [tools]
+bun = "1"
 node = "24"
 pnpm = "11"
 

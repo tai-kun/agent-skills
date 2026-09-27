@@ -1,0 +1,471 @@
+---
+name: blume-configuration
+description: Blume の `blume.config.ts` の全オプションを説明します。サイトのメタデータ、コンテンツ、画像、GitHub、SEO、目次、ページのフィードバックなどを扱います。
+---
+
+# 設定ファイル
+
+Blume はプロジェクトルートの `blume.config.ts` を読み込みます。設定を `defineConfig` でラップすると、オートコンプリートと型チェックが有効になります。すべてのフィールドは任意で、適切なデフォルト値が用意されています。
+
+```ts blume.config.ts lineNumbers
+import { defineConfig } from "blume";
+
+export default defineConfig({
+  title: "My Docs",
+  description: "Documentation for my project.",
+});
+```
+
+## 完全な例 [#a-complete-example]
+
+最もよく使われるオプションを一通り含んだ、より広範な例です（残りは各機能のガイドを参照してください）:
+
+```ts blume.config.ts lineNumbers
+import partytown from "@astrojs/partytown";
+import { defineConfig } from "blume";
+import { orama } from "blume/search";
+
+export default defineConfig({
+  // Site
+  title: "My Docs",
+  description: "Documentation for my project.",
+  logo: "/logo.svg",
+
+  // Astro integrations — installed and versioned by this site
+  integrations: [partytown()],
+
+  // Content
+  content: {
+    root: "docs",
+  },
+
+  // Theme — see the Theming guide
+  theme: {
+    accent: "teal",
+    radius: "md",
+    mode: "system",
+  },
+
+  // Search — an adapter from "blume/search"; see the Search guide
+  search: orama(),
+
+  // Markdown features
+  markdown: {
+    imageZoom: true,
+    externalLinks: false, // open https:// links in a new tab
+    code: {
+      icons: true, // language icon in the code-block header
+      wrap: false, // wrap long lines instead of scrolling
+      theme: {
+        light: "github-light", // bundled name or custom Shiki theme object
+        dark: "github-dark",
+      },
+    },
+  },
+
+  // Agents — llms.txt, MCP, the AI catalog; see the Discoverability section
+  agents: {
+    llmsTxt: true,
+    // AI Catalog / ARD manifest at /.well-known/ai-catalog.json (needs deployment.site)
+    catalog: true,
+    // MCP server (needs server output)
+    mcp: {
+      enabled: false,
+      route: "/mcp",
+    },
+  },
+
+  // SEO — OG images, feeds, sitemap, structured data; see the Discoverability section
+  seo: {
+    og: { enabled: true },
+    rss: { enabled: true, types: ["blog", "changelog"] },
+    sitemap: true,
+    robots: true,
+    structuredData: true,
+  },
+
+  // Deployment — a static build here; see the Deployment guide for host adapters
+  deployment: {
+    site: "https://docs.example.com",
+  },
+});
+```
+
+## サイト [#site]
+
+| オプション | デフォルト | 説明 |
+| --- | --- | --- |
+| `title` | `"Documentation"` | サイト名 — ヘッダー、ページタイトル、OG カードに表示されます。 |
+| `description` | — | デフォルトの meta description。SEO と OG に使用されます。 |
+| `logo` | — | ヘッダーに表示されるブランドマークやワードマーク。 |
+| `banner` | — | ヘッダー上部に表示されるサイト全体のお知らせバー。 |
+
+### ロゴ [#logo]
+
+`logo` に SVG を指定すると Blume がインライン展開するため、`currentColor` を使ったロゴはライトテーマとダークテーマに自動で追従します:
+
+```ts blume.config.ts
+logo: "/logo.svg",
+```
+
+SVG はプロジェクトルートまたは `public/` に配置できます。ブランドはマーク（`image`）とワードマーク（`text`）で構成され、オブジェクト形式ならそれぞれを個別に設定できます:
+
+```ts blume.config.ts lineNumbers
+logo: {
+  image: "/logo.svg", // string, or { light, dark, alt } for themed raster art
+  text: "Acme",       // wordmark beside the mark
+  href: "/",          // overrides the brand link (defaults to "/")
+},
+```
+
+`image` は省略形と同じ値を取ります。単一のパス、またはライト/ダークで別々のアートワークを使う場合は `{ light, dark, alt }` です（ラスター画像は `public/` に配置する必要があります）。
+
+`href` はタブのパスと同じく、デフォルトロケールを基準にしたパスです。[多言語サイト](i18n.md) では、読者のロケールがそのルートを提供している場合、ブランドリンクはそのロケールに移動します（`/en/…` 配下では `/` が `/en` になります）。そのため、ロゴをクリックしても読んでいた言語から離れることはありません。デフォルトロケールだけが提供するルート — [カスタムページ](https://useblume.dev/ja/docs/advanced/custom-pages) や生成されたチェンジログのインデックスなど — は、404 になってしまうローカライズ済み URL を指す代わりに、元のパスを維持します。絶対 URL はそのまま使われます。
+
+`text` はマークとは独立してワードマークを制御します:
+
+- **`text` を省略**すると、ブランドにはサイトの `title` が使われます（デフォルト）。
+- **`text: ""` を設定**するとマークのみを表示します。ロゴ画像にすでにワードマークが含まれている場合に便利です。その場合、スクリーンリーダーはブランドリンクを画像の `alt` で読み上げ、`alt` がなければサイトの `title` で読み上げます。
+- **`image` なしで `text` を設定**すると、テキストのみのロゴになります。
+
+### ファビコン [#favicon]
+
+ファビコンのオプションはありません。Blume は Next.js と同じようにファイル名から自動検出します。`icon` または `favicon` というファイル（`.svg`、`.png`、`.ico`）をプロジェクトルートまたは `public/` ディレクトリに置くと、ブラウザのタブアイコンになります:
+
+```
+my-docs/
+├─ blume.config.ts
+├─ icon.png          ← picked up automatically
+└─ docs/
+```
+
+複数存在する場合は SVG が PNG より、PNG が ICO より優先され、ルート直下のファイルよりも `public/` 内のファイルが優先されます。アイコンが見つからない場合、Blume は自身のマークにフォールバックします。
+
+暗い色のマークは暗いブラウザ UI の中では見えなくなってしまうため、ダークモード用に 2 つ目のファイルを用意できます。アイコンファイルの `-dark` 兄弟ファイル — 同じ名前・同じディレクトリで、拡張子の前に `-dark` を付けたもの（`icon.png` → `icon-dark.png`）— を追加すると、Blume は `prefers-color-scheme` メディアクエリを介して両方のアイコンを出力し、あわせてアイコンのメディアクエリを無視するブラウザやクローラー向けにライト用のプレーンなタグも出力します:
+
+```
+my-docs/
+├─ blume.config.ts
+├─ icon.png          ← light mode
+├─ icon-dark.png     ← dark mode
+└─ docs/
+```
+
+使われるのは Blume が選択したアイコンの兄弟ファイルだけです。名前が異なる `-dark` ファイルは無視されるため、無関係なファイルが誤ってマークと組み合わされることはありません。ダーク用ファイルは任意で、アイコンが 1 つだけの場合、Blume はこれまでどおり単一のタグを出力します。Blume 自身のフォールバックマークは両方のバリエーションを備えています。
+
+### Apple タッチアイコン [#apple-touch-icon]
+
+サイトをホーム画面に追加したときに iOS が使うアイコンも、同じ方法で検出されます。`apple-icon` というファイル（`.png`、`.jpg`、`.jpeg`）— あるいは、多くのファビコン生成ツールが出力する名前である `apple-touch-icon.png` — をプロジェクトルートまたは `public/` ディレクトリに置くと、Blume が `<link rel="apple-touch-icon">` を設定します。デフォルトはありません。ファイルが見つからない場合、タグは出力されません。
+
+```
+my-docs/
+├─ blume.config.ts
+├─ apple-icon.png     ← picked up automatically
+└─ docs/
+```
+
+このファイルはプロジェクトルートではなく `public/` に置いてください。ルート直下のアイコンに対して Blume が使うインラインのデータ URI は iOS では無視されるため、`public/` に置いたファイル（`/apple-icon.png` で配信されます）だけが確実にホーム画面に反映されます。ファビコンとは異なり、ここでは `-dark` 兄弟ファイルはありません。iOS はホーム画面アイコンのメディアクエリを無視するため、ダーク用のバリエーションを配信することはそもそもできないからです。
+
+### バナー [#banner]
+
+ヘッダーの上にサイト全体のお知らせバーを表示します。文字列を渡すか、リンクと閉じるボタンを含むオブジェクトを渡します:
+
+```ts blume.config.ts
+banner: "Docs are in beta — expect changes.",
+```
+
+```ts blume.config.ts lineNumbers
+banner: {
+  content: "Version 2.0 is here!",
+  link: { text: "Read the release notes", href: "/changelog" },
+  dismissible: true,
+  id: "v2",
+},
+```
+
+`dismissible` を有効にすると、バーに閉じるボタンが表示され、それ以降その訪問者には非表示のままになります。閉じた状態を記録するキーはデフォルトで本文テキストになるため、メッセージを編集するとバナーが再び表示されます。編集後も閉じたままにするには、安定した `id` を設定してください。
+
+## コンテンツ [#content]
+
+コンテンツの置き場所と、Blume がそれをどう検出するかです。ファイルがどのようにルートになるかは [ページ](page.md) を参照してください。
+
+```ts blume.config.ts lineNumbers
+content: {
+  root: "docs",
+}
+```
+
+| オプション | デフォルト | 説明 |
+| --- | --- | --- |
+| `root` | `"docs"` | Blume がコンテンツを走査するフォルダ。単一の `filesystem()` ソースの省略形で、`sources` と併用することはできません。 |
+| `include` | `["**/*.{md,mdx}"]` | コンテンツファイルにマッチする glob。`root` と同様に省略形です。 |
+| `exclude` | `["**/_*", "**/.*"]` | 無視する glob（アンダースコアおよびドットで始まるファイル）。`root` と同様に省略形です。 |
+| `sources` | `filesystem()` 1 つ | `blume/sources` のコンテンツソースアダプター。省略形の代わりに使います。[コンテンツソース](sources.md) を参照してください。 |
+| `pages` | `"pages"` | カスタム `.astro` ページ用のフォルダ。 |
+| `defaultType` | `"doc"` | フロントマターで指定がない場合に使われるページの `type`。 |
+| `types` | `{}` | タイプごとのコンテンツ定義 — 特定の `type` のページにのみ適用されるカスタムフロントマターキー。[フロントマター](#frontmatter) を参照してください。 |
+
+静的アセットは `public/` に置きます。`public/logo.png` にあるファイルは `/logo.png` で配信されるため、`![](/images/create.png)` のような参照は `public/images/create.png` に解決されます。**相対パス**で参照される画像（`![](./diagram.png)`）はコンテンツの隣に配置し、[ビルド時に最適化されます](syntax.md#links-and-images)。
+
+## 画像 [#images]
+
+相対パスで参照されるローカル画像は、ビルド時に自動的に最適化されます。圧縮され、WebP に変換され、読み込み中にレイアウトがずれないよう本来の `width`/`height` 属性が付与されます。設定は不要です。執筆時のガイダンスは [リンクと画像](syntax.md#links-and-images) を参照してください。
+
+リモート画像はデフォルトでは手を加えずに配信されます。Blume にビルド時のダウンロードと最適化も行わせるには、そのホストを許可してください:
+
+```ts blume.config.ts lineNumbers
+image: {
+  domains: ["cdn.example.com"],
+  remotePatterns: [{ protocol: "https", hostname: "**.example.com" }],
+}
+```
+
+| オプション | デフォルト | 説明 |
+| --- | --- | --- |
+| `domains` | `[]` | リモート画像の最適化を許可するホスト名。 |
+| `remotePatterns` | `[]` | パターンベースの許可設定（`protocol`、`hostname`、`port`、`pathname`）。ホスト名は `*.`（1 階層）と `**.`（任意の深さ）のワイルドカードを受け付けます。 |
+
+## フロントマター [#frontmatter]
+
+ページのフロントマターは厳格に検証され、未知のキーがあるとビルドが失敗するため、タイプミスを早期に発見できます。プロジェクト固有のメタデータ（担当者、レビュー日など）を持たせるには、追加のキーを `frontmatter.extend` の下に宣言し、それぞれに用意したスキーマを対応付けます:
+
+```ts blume.config.ts lineNumbers
+import { defineConfig } from "blume";
+import { z } from "zod";
+
+export default defineConfig({
+  frontmatter: {
+    extend: {
+      owner: z.string(),
+      reviewedAt: z.coerce.date().optional(),
+    },
+  },
+});
+```
+
+任意の [Standard Schema](https://standardschema.dev) ライブラリが利用できます — Zod（プロジェクトがインストールしているバージョンを問わず）、Valibot、ArkType など。拡張の外側のキーは引き続き厳格に検証されるため、タイプミスの検出はこれまでどおりです。検証のセマンティクスについては [カスタムキー](frontmatter.md#custom-keys) を参照してください。
+
+`extend` の下のキーはサイト全体に適用されます。特定のコンテンツタイプのページにだけキーを必須にしたい場合 — RFC の `status`、ランブックの `service` など — は、代わりに `content.types` の下でタイプごとに宣言してください:
+
+```ts blume.config.ts lineNumbers
+import { defineConfig } from "blume";
+import { z } from "zod";
+
+export default defineConfig({
+  content: {
+    types: {
+      rfc: {
+        facets: ["domain", "status"],
+        frontmatter: {
+          domain: z.string(),
+          status: z.enum(["draft", "review", "enforced"]),
+        },
+      },
+    },
+  },
+});
+```
+
+1 つのキーはサイト全体かタイプごとのどちらかで宣言でき、両方はできません。スコープがどう解決されるかは [タイプごとのキー](frontmatter.md#per-type-keys) を参照してください。
+
+`facets` は、その値がフィルタ可能なメタデータになるカスタムキーを指定します。これらは検索ドキュメント（`blume-search.json` と MCP インデックス）に付随し、[MCP ツール](https://useblume.dev/ja/docs/discoverability/mcp) はそれらに対して照合を行う `filters` 入力を受け付けます。そのため、エージェントは例えば `architecture` ドメインの `enforced` な RFC だけを取得できます。各ファセットは宣言済みのカスタムキー（タイプごと、またはサイト全体）である必要があり、ファセットになるのは文字列（あるいは文字列化された数値・真偽値）の値のみです。
+
+## GitHub
+
+`github` で Blume にリポジトリを指定します。これはヘッダーの [リポジトリリンク](navigation.md#repository-link) と、**Edit on GitHub** の [ページアクション](navigation.md#page-actions) を有効にします:
+
+```ts blume.config.ts lineNumbers
+github: {
+  owner: "acme",
+  repo: "docs",
+}
+```
+
+| オプション | デフォルト | 説明 |
+| --- | --- | --- |
+| `owner` | — | リポジトリを所有する GitHub アカウントまたは組織。 |
+| `repo` | — | リポジトリ名。 |
+| `branch` | `"main"` | 編集リンクが指すブランチ。 |
+| `dir` | — | リポジトリルートからプロジェクトルートまでのパス（モノレポ向け）。 |
+| `host` | `"https://github.com"` | Enterprise 環境向けの、GitHub インスタンスのオリジン。HTTP(S) である必要があり、オリジンに正規化されます。 |
+| `api` | `host` から導出 | Enterprise インスタンスに対して `<GithubInfo>` を使うための REST API のベース。HTTP(S) である必要があり、オリジンとパスに正規化されます。 |
+
+### GitHub Enterprise
+
+リポジトリが GitHub Enterprise インスタンスにあるドキュメントでは `host` を設定します。すると、リポジトリから導出されるすべてのリンク — ヘッダーのマーク、編集リンク、エージェントマニフェスト — が、公開サイトではなくそのインスタンスを指すようになります:
+
+```ts blume.config.ts lineNumbers
+github: {
+  host: "https://github.acme.com",
+  owner: "acme",
+  repo: "docs",
+}
+```
+
+[`<GithubInfo>`](components.md) が問い合わせる REST API のベースは `host` から導出されます。データレジデンシーを備えた Enterprise Cloud テナント（`acme.ghe.com`）はその `api.` サブドメインから配信され、それ以外のホストは Enterprise Server（`/api/v3`）として扱われます。インスタンスがそれ以外の場所にある場合は、`api` を明示的に設定してください。
+
+:::warning
+プレーンな HTTP でしか到達できないインスタンスでもカウントは描画されますが、`GITHUB_TOKEN` は平文で送信される代わりにリクエストから除外されます。そのため、プライベートリポジトリのカードはカウントなしで返ってきます。
+:::
+
+:::note
+`host` は Blume が `github` から導出するリンクに適用されます。ヘッダーのマークだけを別の場所 — 例えばドキュメントのリポジトリ自体がプライベートな場合の組織ページなど — に向けたい場合は、絶対 URL を指定した [`navigation.repo`](navigation.md#repository-link) を使ってください。
+:::
+
+## 最終更新日 [#last-modified]
+
+各ページの下部に「Last updated on …」の行を表示します。デフォルトは無効です。`lastModified` を `"git"` に設定すると、各ページの日付が git 履歴から算出されます:
+
+```ts blume.config.ts
+lastModified: "git",
+```
+
+| 値 | 説明 |
+| --- | --- |
+| `false` | 無効（デフォルト）。 |
+| `"git"` | git 履歴（コミット日時）から日付を読み取ります。 |
+| `"frontmatter"` | git を実行せず、フロントマターの `lastModified` フィールドのみを使用します。 |
+
+git ソースは各ファイルに触れた最新のコミットを読み取るため、モノレポを含むあらゆる git リポジトリで機能し、ビルド時にリポジトリの履歴が必要です。CI プラットフォームは通常シャロークローンでチェックアウトするため、ほとんどの日付が黙って失われます（その場合、ビルドは `BLUME_SHALLOW_GIT_HISTORY` で警告します）。Vercel では `VERCEL_DEEP_CLONE=true` 環境変数を設定し、`actions/checkout` では `fetch-depth: 0` を設定してください。ページ自身の `lastModified` フロントマターが常に優先されるので、日付を固定したい場合や、まだコミットされていないファイルに便利です:
+
+```mdx page.mdx
+---
+title: My page
+lastModified: 2026-06-20
+---
+```
+
+有効にすると、この日付はページの構造化データに schema.org の `dateModified` としても出力されます。
+
+## 日付フォーマット [#date-format]
+
+「Last updated」のスタンプと [チェンジログ](https://useblume.dev/ja/docs/advanced/changelog) のタイムラインは、どちらも同じ `dateFormat` を通して日付を描画するため、表記が揃います。日付は常にサイトのロケールで描画され、`dateFormat` は*形式*を制御します。デフォルトは長い形式です（`July 21, 2026`、`2026年7月21日`）:
+
+```ts blume.config.ts
+dateFormat: { dateStyle: "long" },
+```
+
+`dateFormat` は [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat) のオプションへのパススルーです。長さを指定するには `dateStyle` のプリセットを使います:
+
+```ts blume.config.ts
+dateFormat: { dateStyle: "medium" },
+```
+
+あるいは、`2026/07/21` のような数値中心のハウススタイルにするには、個別のコンポーネントフィールドを使います:
+
+```ts blume.config.ts
+dateFormat: { year: "numeric", month: "2-digit", day: "2-digit" },
+```
+
+| オプション | 説明 |
+| --- | --- |
+| `dateStyle` | 長さのプリセット: `"full"`、`"long"`、`"medium"`、`"short"`。コンポーネントフィールドとの併用はできません。 |
+| `weekday`、`era`、`year`、`month`、`day` | 個別のコンポーネント。例: `year: "numeric"`、`month: "2-digit"`。 |
+| `timeZone` | IANA タイムゾーン。デフォルトは `UTC` なので、サイトをどこでビルドしても日付は同じに表示されます。 |
+| `calendar`、`numberingSystem` | 暦法（例: `"japanese"`）と記数法（例: `"arab"`）。 |
+
+`timeZone`、`calendar`、`numberingSystem` は形式を変えません。これらだけを設定した `dateFormat` では、長い形式のままになります。
+
+## SEO とエージェント [#seo-and-agents]
+
+メタデータ、Open Graph 画像、RSS フィード、JSON-LD、サイトマップ、`robots.txt` は `seo` の下にまとまっています。`llms.txt`、生の Markdown、JSON API、MCP サーバー、ディスカバリーマニフェストは `agents` の下です。どちらも [発見可能性](https://useblume.dev/ja/docs/discoverability) セクションでページごとに解説しており、そこでは検索エンジンと AI エージェントを、同じ機械可読レイヤーに対する 2 つのオーディエンスとして扱っています。読者向けのモデル機能 — アシスタントと Open in chat アクション — は `ai` の下にあります。
+
+```ts blume.config.ts lineNumbers
+seo: {
+  og: { enabled: true },
+  rss: { enabled: true, types: ["blog", "changelog"] },
+  sitemap: true,
+  robots: true,
+  structuredData: true,
+}
+```
+
+| オプション | デフォルト | 説明 |
+| --- | --- | --- |
+| `og.enabled` | 自動 | ページごとの Open Graph 画像 — サイト URL が設定されていると有効になります。 |
+| `rss.enabled` | `true` | ブログとチェンジログのコンテンツ用にフィードをビルドします（deployment.site が必要）。 |
+| `rss.types` | `["blog", "changelog"]` | それぞれフィードを持つコンテンツタイプ。 |
+| `rss.limit` | `50` | 1 フィードあたりの最大アイテム数。 |
+| `sitemap` | `true` | sitemap.xml を生成します（deployment.site が必要）。 |
+| `robots` | `true` | Sitemap リンク付きの robots.txt を生成します。 |
+| `structuredData` | `true` | 各ページの head に schema.org の JSON-LD を出力します。 |
+
+これらは、完全な URL を得るために絶対パスの [`deployment.site`](https://useblume.dev/ja/docs/deployment) と組み合わせると最も効果的です。
+
+## 目次 [#table-of-contents]
+
+このページの見出し一覧はデフォルトで有効になっており、`H2`〜`H3` の見出しを掲載します。`toc` で無効にしたり、見出しの範囲を変更したりできます:
+
+```ts blume.config.ts
+export default defineConfig({
+  toc: false, // hide it everywhere
+});
+```
+
+あるいは、見出しの範囲を絞り込みます:
+
+```ts blume.config.ts
+export default defineConfig({
+  toc: { minHeadingLevel: 2, maxHeadingLevel: 4 },
+});
+```
+
+## ページのフィードバック [#page-feedback]
+
+各ドキュメントページの末尾には「Was this page helpful?」の評価が表示されます。デフォルトで有効になっており、`feedback` を `false` に設定するとすべてのページで非表示になります:
+
+```ts blume.config.ts
+export default defineConfig({
+  feedback: false,
+});
+```
+
+読者の回答は、`helpful`（`"yes"` または `"no"`）、`path`、`title` を含む `feedback` の [カスタムイベント](https://useblume.dev/ja/docs/configuration/analytics#custom-events) として、イベント API を持つ設定済みのすべてのアナリティクスアダプターを通じて送信されます。あわせて `window` 上の `blume:track` イベントとしても送出されます。アナリティクスアダプターがない場合、回答はどこにも記録されません。質問文とお礼のテキストは UI 文字列なので、[`i18n.ui`](i18n.md#translated-ui) で翻訳できます。
+
+## 機能ごとのオプション [#feature-options]
+
+以下にはそれぞれ専用のガイドがあります。設定フィールドがその入口です:
+
+| フィールド | 設定する内容 | ガイド |
+| --- | --- | --- |
+| `theme` | アクセントカラー、角の丸み、フォント、ライト/ダークモード | [テーマ](https://useblume.dev/ja/docs/configuration/theming) |
+| `navigation` | サイドバーとヘッダータブの明示的な指定 | [ナビゲーション](navigation.md) |
+| `search` | プロバイダー（Orama、Pagefind、Algolia など）とインデックス作成 | [検索](https://useblume.dev/ja/docs/configuration/search) |
+| `markdown` | Markdown のレンダリングオプション — コードブロック、見出しアンカー、画像ズーム | [構文](syntax.md) |
+| `agents` | `llms.txt`、Markdown ミラー、JSON API、ホスト型 MCP サーバー、スキル、そしてコーディングエージェント向けのディスカバリーマニフェスト | [SEO と AEO](https://useblume.dev/ja/docs/discoverability) |
+| `ai` | ページ内のアシスタントと Open in chat アクション | [アシスタント](https://useblume.dev/ja/docs/configuration/assistant) |
+| `reference` | API リファレンス: `blume/reference` の `openapi()`、`asyncapi()`、`graphql()`、`scalar()` アダプター | [OpenAPI](https://useblume.dev/ja/docs/references/openapi)、[AsyncAPI](https://useblume.dev/ja/docs/references/asyncapi)、[GraphQL](https://useblume.dev/ja/docs/references/graphql)、[Scalar](https://useblume.dev/ja/docs/references/scalar) |
+| `analytics` | `blume/analytics` のアダプター — PostHog、Google Analytics、Plausible、Mixpanel、Segment など — とカスタムスクリプト | [アナリティクス](https://useblume.dev/ja/docs/configuration/analytics) |
+| `seo` | メタデータ、OG 画像、フィード、構造化データ、サイトマップ、robots | [SEO と AEO](https://useblume.dev/ja/docs/discoverability) |
+| `deployment` | `blume/deploy` のホストアダプター、または静的ビルド用の `{ site, base }` | [デプロイ](https://useblume.dev/ja/docs/deployment) |
+| `redirects` | 恒久的および一時的なリダイレクト | [デプロイ](https://useblume.dev/ja/docs/deployment#redirects) |
+| `integrations` | Blume の組み込み機能の後に追加される Astro インテグレーション | [カスタマイズ](https://useblume.dev/ja/docs/configuration/customization#astro-integrations) |
+| `basePath` | 生成されるすべてのルートをマウントするパス（例: `/docs`）。サイドバーには表示されません | [デプロイ](https://useblume.dev/ja/docs/deployment#mount-the-docs-under-a-path) |
+| `i18n` | ロケール、デフォルトロケール、翻訳済みの UI 文字列 | [国際化](i18n.md) |
+| `versions` | バージョン切り替え付きの、古いドキュメントの固定スナップショット | [バージョニング](versioning.md) |
+| `export` | 読者向けの PDF および EPUB ダウンロード | [エクスポート](https://useblume.dev/ja/docs/configuration/export) |
+| `examples` | `<Component path>` のサンプルプレビューの置き場所と、そのフレームに挿入される CSS | [Component](components.md#component) |
+| `react` | React アイランドの挙動 — React Compiler による自動メモ化 | [アイランド](https://useblume.dev/ja/docs/content/islands#frameworks) |
+| `feedback` | 各ページ末尾の「Was this page helpful?」評価（デフォルトは `true`） | [ページのフィードバック](#page-feedback) |
+
+## 優先順位 [#precedence]
+
+設定は優先度の低いものから高いものへと解決されるため、必要な部分だけを上書きすれば済みます:
+
+1. **Blume のデフォルト**
+
+    すべてのフィールドに適切なデフォルト値があります。
+
+2. **blume.config.ts**
+
+    プロジェクト全体の設定。
+
+3. **フォルダの meta**
+
+    セクションのタイトルと並び順を指定する [`meta.ts`](meta.md)。
+
+4. **ページのフロントマター**
+
+    ページごとの上書きが優先されます。
+
+<!-- Sources: apps/docs/dist/client/ja/docs/configuration.md -->
