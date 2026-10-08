@@ -1,6 +1,6 @@
 ---
 name: pc-safety-guard
-description: CRITICAL. MUST READ BEFORE any destructive, mutating, privileged, or externally-visible action, including shell, filesystem, Git, code execution, system, process, package, and network operations. Protect user data and uncommitted work. If uncertain, STOP.
+description: Read this skill whenever you need to perform actions or control operations on a PC.
 ---
 
 # PC Safety Guard
