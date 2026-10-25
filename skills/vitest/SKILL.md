@@ -9,55 +9,55 @@ Vitest を用いたテストを、決定的で保守しやすい形で実装・�
 
 ### コア
 
-| トピック | 説明 | 参照 |
-| --- | --- | --- |
-| Configuration | Vitest と Vite の設定統合、`defineConfig` の使用法 | [core-config](references/core-config.md) |
-| CLI | コマンドラインインターフェース、コマンドとオプション | [core-cli](references/core-cli.md) |
-| Test API | `test` / `it` 関数、`skip`・`only`・`concurrent` などの修飾子 | [core-test-api](references/core-test-api.md) |
-| Describe API | テストのグループ化やネストしたスイートのための `describe` / `suite` | [core-describe](references/core-describe.md) |
-| Expect API | `toBe`・`toEqual`・マッチャー・非対称マッチャーによるアサーション | [core-expect](references/core-expect.md) |
-| Hooks | `beforeEach`・`afterEach`・`beforeAll`・`afterAll`・`aroundEach` | [core-hooks](references/core-hooks.md) |
+| トピック      | 説明                                                                | 参照                                         |
+| ------------- | ------------------------------------------------------------------- | -------------------------------------------- |
+| Configuration | Vitest と Vite の設定統合、`defineConfig` の使用法                  | [core-config](references/core-config.md)     |
+| CLI           | コマンドラインインターフェース、コマンドとオプション                | [core-cli](references/core-cli.md)           |
+| Test API      | `test` / `it` 関数、`skip`・`only`・`concurrent` などの修飾子       | [core-test-api](references/core-test-api.md) |
+| Describe API  | テストのグループ化やネストしたスイートのための `describe` / `suite` | [core-describe](references/core-describe.md) |
+| Expect API    | `toBe`・`toEqual`・マッチャー・非対称マッチャーによるアサーション   | [core-expect](references/core-expect.md)     |
+| Hooks         | `beforeEach`・`afterEach`・`beforeAll`・`afterAll`・`aroundEach`    | [core-hooks](references/core-hooks.md)       |
 
 ### 機能
 
-| トピック | 説明 | 参照 |
-| --- | --- | --- |
-| Mocking | `vi` ユーティリティによる関数・モジュール・タイマー・日付のモック | [features-mocking](references/features-mocking.md) |
-| Snapshots | `toMatchSnapshot` とインラインスナップショットによるスナップショットテスト | [features-snapshots](references/features-snapshots.md) |
-| Coverage | V8 または Istanbul プロバイダーによるコードカバレッジ | [features-coverage](references/features-coverage.md) |
-| Test Context | テストフィクスチャ、`context.expect`、カスタムフィクスチャ用の `test.extend` | [features-context](references/features-context.md) |
-| Concurrency | 並行テスト、並列実行、シャーディング | [features-concurrency](references/features-concurrency.md) |
-| Filtering | 名前・ファイルパターン・タグによるテストのフィルタリング | [features-filtering](references/features-filtering.md) |
-| Test Tags | タグでテストにラベルを付けて実行の絞り込みや共有オプションの適用を行う | [features-test-tags](references/features-test-tags.md) |
-| Reporters | 組み込みレポーター、デフォルト選択、CI / 出力設定 | [features-reporters](references/features-reporters.md) |
-| Benchmarking | `bench` フィクスチャ (Tinybench) によるベンチマーク作成 | [features-benchmarking](references/features-benchmarking.md) |
+| トピック     | 説明                                                                         | 参照                                                         |
+| ------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Mocking      | `vi` ユーティリティによる関数・モジュール・タイマー・日付のモック            | [features-mocking](references/features-mocking.md)           |
+| Snapshots    | `toMatchSnapshot` とインラインスナップショットによるスナップショットテスト   | [features-snapshots](references/features-snapshots.md)       |
+| Coverage     | V8 または Istanbul プロバイダーによるコードカバレッジ                        | [features-coverage](references/features-coverage.md)         |
+| Test Context | テストフィクスチャ、`context.expect`、カスタムフィクスチャ用の `test.extend` | [features-context](references/features-context.md)           |
+| Concurrency  | 並行テスト、並列実行、シャーディング                                         | [features-concurrency](references/features-concurrency.md)   |
+| Filtering    | 名前・ファイルパターン・タグによるテストのフィルタリング                     | [features-filtering](references/features-filtering.md)       |
+| Test Tags    | タグでテストにラベルを付けて実行の絞り込みや共有オプションの適用を行う       | [features-test-tags](references/features-test-tags.md)       |
+| Reporters    | 組み込みレポーター、デフォルト選択、CI / 出力設定                            | [features-reporters](references/features-reporters.md)       |
+| Benchmarking | `bench` フィクスチャ (Tinybench) によるベンチマーク作成                      | [features-benchmarking](references/features-benchmarking.md) |
 
 ### 応用
 
-| トピック | 説明 | 参照 |
-| --- | --- | --- |
-| Vi Utilities | `vi` ヘルパー: モック、`spyOn`、フェイクタイマー、`hoisted`、`waitFor` | [advanced-vi](references/advanced-vi.md) |
-| Environments | テスト環境: `node`・`jsdom`・`happy-dom`・カスタム | [advanced-environments](references/advanced-environments.md) |
-| Type Testing | `expectTypeOf` と `assertType` による型レベルのテスト | [advanced-type-testing](references/advanced-type-testing.md) |
-| Projects | マルチプロジェクトワークスペース、プロジェクトごとの異なる設定 | [advanced-projects](references/advanced-projects.md) |
+| トピック     | 説明                                                                   | 参照                                                         |
+| ------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Vi Utilities | `vi` ヘルパー: モック、`spyOn`、フェイクタイマー、`hoisted`、`waitFor` | [advanced-vi](references/advanced-vi.md)                     |
+| Environments | テスト環境: `node`・`jsdom`・`happy-dom`・カスタム                     | [advanced-environments](references/advanced-environments.md) |
+| Type Testing | `expectTypeOf` と `assertType` による型レベルのテスト                  | [advanced-type-testing](references/advanced-type-testing.md) |
+| Projects     | マルチプロジェクトワークスペース、プロジェクトごとの異なる設定         | [advanced-projects](references/advanced-projects.md)         |
 
 ### ブラウザーモード
 
-| トピック | 説明 | 参照 |
-| --- | --- | --- |
-| Browser Guide | Browser Modeの概要・インストール・実行・複数ブラウザー設定・制限事項 | [browser-guide](references/browser-guide.md) |
-| Browser Config | `test.browser`設定: プロバイダー・インスタンス・headless・viewport・trace等 | [browser-config](references/browser-config.md) |
-| Locators | `page.getBy*`クエリ・絞り込み・操作メソッド・カスタムロケーター | [browser-locators](references/browser-locators.md) |
-| Interactivity | `userEvent`による実イベント操作: クリック・入力・選択・ドラッグ等 | [browser-interactivity](references/browser-interactivity.md) |
-| Assertions | `expect.element`・DOMマッチャー・スクリーンショット・ARIAスナップショット | [browser-assertions](references/browser-assertions.md) |
-| Context & Commands | `page`・`server`・`cdp`・`utils`と組み込み/カスタムコマンド | [browser-context-commands](references/browser-context-commands.md) |
-| Component Testing | Vue・React・Svelteの`render`とTesting Library連携・実践パターン | [browser-component](references/browser-component.md) |
-| Visual & Trace | ビジュアルリグレッション運用とPlaywrightトレースの取得・閲覧 | [browser-visual-trace](references/browser-visual-trace.md) |
+| トピック           | 説明                                                                        | 参照                                                               |
+| ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Browser Guide      | Browser Modeの概要・インストール・実行・複数ブラウザー設定・制限事項        | [browser-guide](references/browser-guide.md)                       |
+| Browser Config     | `test.browser`設定: プロバイダー・インスタンス・headless・viewport・trace等 | [browser-config](references/browser-config.md)                     |
+| Locators           | `page.getBy*`クエリ・絞り込み・操作メソッド・カスタムロケーター             | [browser-locators](references/browser-locators.md)                 |
+| Interactivity      | `userEvent`による実イベント操作: クリック・入力・選択・ドラッグ等           | [browser-interactivity](references/browser-interactivity.md)       |
+| Assertions         | `expect.element`・DOMマッチャー・スクリーンショット・ARIAスナップショット   | [browser-assertions](references/browser-assertions.md)             |
+| Context & Commands | `page`・`server`・`cdp`・`utils`と組み込み/カスタムコマンド                 | [browser-context-commands](references/browser-context-commands.md) |
+| Component Testing  | Vue・React・Svelteの`render`とTesting Library連携・実践パターン             | [browser-component](references/browser-component.md)               |
+| Visual & Trace     | ビジュアルリグレッション運用とPlaywrightトレースの取得・閲覧                | [browser-visual-trace](references/browser-visual-trace.md)         |
 
 ## 基本方針
 
 - ESM を使用します。
-- `describe()` は文脈、`test()` は振る舞いを表現します。`it()` は使用しません。
+- `describe()` は文脈、`test()` は振る舞いを表現します。
 - `describe()` は可読性が向上する場合のみ使用します。
 - テスト名は簡潔にまとめます。テスト名は期待する振る舞いを表現し、実装方法には言及しません。
 - 1 つのテストでは 1 つの振る舞いを検証します。
@@ -73,27 +73,27 @@ Vitest を用いたテストを、決定的で保守しやすい形で実装・�
 
 ## テスト構成
 
-AAA（Arrange / Act / Assert）を基本とし、`// 準備`、`// 実行`、`// 検証`（または `// 準備と実行`、`// 実行と検証`）で区切ります:
+AAA（Arrange / Act / Assert）を基本とし、`// 準備：`、`// 実行：`、`// 検証：`（または `// 準備と実行：`、`// 実行と検証：`）で区切ります:
 
 ```ts
 test("キャッシュされていない値を返す", ({ expect }) => {
-  // 準備
+  // 準備：
   const cache = new Cache();
 
-  // 実行
+  // 実行：
   const value = cache.get("foo");
 
-  // 検証
+  // 検証：
   expect(value).toBe(undefined);
 });
 ```
 
 ```ts
 test("キャッシュされていない値を取得すると KeyNotFoundError を投げる", ({ expect }) => {
-  // 準備
+  // 準備：
   const cache = new Cache();
 
-  // 実行と検証
+  // 実行と検証：
   expect(() => cache.get("foo")).toThrow(KeyNotFoundError);
 });
 ```
@@ -186,7 +186,7 @@ using fn = vi.spyOn(...);
 
 ## 非同期テスト
 
-できるだけ async / await を使用します。Promise の `then()` チェーンは使用しません。
+できるだけ async / await を使用します。
 
 ```ts
 test("ユーザーを取得する", async ({ expect }) => {
